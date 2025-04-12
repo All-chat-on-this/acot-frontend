@@ -32,7 +32,6 @@ const ConfigPage: React.FC = () => {
         name: '',
         apiUrl: '',
         apiKey: '',
-        proxyUrl: '',
         requestTemplate: '{\n  "model": "gpt-3.5-turbo",\n  "messages": [\n    { "role": "system", "content": "You are a helpful assistant." }\n  ]\n}',
         responseTemplate: '{\n  "roleField": "choices[0].message.role",\n  "contentField": "choices[0].message.content",\n  "thinkingTextField": null\n}'
     });
@@ -59,7 +58,6 @@ const ConfigPage: React.FC = () => {
                 name: currentConfig.name,
                 apiUrl: currentConfig.apiUrl,
                 apiKey: currentConfig.apiKey,
-                proxyUrl: currentConfig.proxyUrl || '',
                 requestTemplate: JSON.stringify(currentConfig.requestTemplate, null, 2),
                 responseTemplate: JSON.stringify(currentConfig.responseTemplate, null, 2)
             });
@@ -72,7 +70,6 @@ const ConfigPage: React.FC = () => {
                 name: currentConfig.name,
                 apiUrl: currentConfig.apiUrl,
                 apiKey: currentConfig.apiKey,
-                proxyUrl: currentConfig.proxyUrl || '',
                 requestTemplate: JSON.stringify(currentConfig.requestTemplate, null, 2),
                 responseTemplate: JSON.stringify(currentConfig.responseTemplate, null, 2)
             });
@@ -95,7 +92,6 @@ const ConfigPage: React.FC = () => {
             name: t('new_configuration'),
             apiUrl: 'https://api.example.com/chat/completions',
             apiKey: '',
-            proxyUrl: '',
             requestTemplate: '{\n  "model": "gpt-3.5-turbo",\n  "messages": [\n    { "role": "system", "content": "You are a helpful assistant." }\n  ]\n}',
             responseTemplate: '{\n  "roleField": "choices[0].message.role",\n  "contentField": "choices[0].message.content",\n  "thinkingTextField": null\n}'
         });
@@ -155,7 +151,6 @@ const ConfigPage: React.FC = () => {
                 name: formData.name,
                 apiUrl: formData.apiUrl,
                 apiKey: formData.apiKey,
-                proxyUrl: formData.proxyUrl,
                 headers: {'Content-Type': 'application/json'},
                 requestTemplate,
                 responseTemplate
@@ -184,7 +179,6 @@ const ConfigPage: React.FC = () => {
                 name: formData.name,
                 apiUrl: formData.apiUrl,
                 apiKey: formData.apiKey,
-                proxyUrl: formData.proxyUrl,
                 headers: {'Content-Type': 'application/json'},
                 requestTemplate,
                 responseTemplate
@@ -323,18 +317,12 @@ const ConfigPage: React.FC = () => {
                                         <ConfigDetailValue>••••••••••••••••••••••</ConfigDetailValue>
                                     </ConfigDetail>
 
-                                    {currentConfig.proxyUrl && (
-                                        <ConfigDetail>
-                                            <ConfigDetailLabel>{t('proxy_url')}</ConfigDetailLabel>
-                                            <ConfigDetailValue>{currentConfig.proxyUrl}</ConfigDetailValue>
-                                        </ConfigDetail>
-                                    )}
-
                                     <ConfigDetail>
                                         <ConfigDetailLabel>{t('request_template')}</ConfigDetailLabel>
-                                        <JSONEditor 
+                                        <JSONEditor
                                             value={JSON.stringify(currentConfig.requestTemplate, null, 2)}
-                                            onChange={() => {}} 
+                                            onChange={() => {
+                                            }}
                                             height="200px"
                                             readOnly={true}
                                         />
@@ -342,25 +330,27 @@ const ConfigPage: React.FC = () => {
 
                                     <ConfigDetail>
                                         <ConfigDetailLabel>{t('response_template')}</ConfigDetailLabel>
-                                        <JSONEditor 
+                                        <JSONEditor
                                             value={JSON.stringify(currentConfig.responseTemplate, null, 2)}
-                                            onChange={() => {}} 
+                                            onChange={() => {
+                                            }}
                                             height="150px"
                                             readOnly={true}
                                         />
                                     </ConfigDetail>
 
-                                    <div style={{ padding: "15px", backgroundColor: "#f8f9fa", borderRadius: "5px" }}>
+                                    <div style={{padding: "15px", backgroundColor: "#f8f9fa", borderRadius: "5px"}}>
                                         <h4>{t('openai_model_status')}</h4>
                                         {modelStatus ? (
                                             <JSONEditor
                                                 value={JSON.stringify(modelStatus, null, 2)}
-                                                onChange={() => {}}
+                                                onChange={() => {
+                                                }}
                                                 height="200px"
                                                 readOnly={true}
                                             />
                                         ) : (
-                                            <Spinner size={20} />
+                                            <Spinner size={20}/>
                                         )}
                                     </div>
                                 </ConfigDetailContent>
@@ -408,17 +398,6 @@ const ConfigPage: React.FC = () => {
                                             onChange={handleChange}
                                             placeholder="sk-..."
                                             required
-                                        />
-                                    </FormGroup>
-
-                                    <FormGroup>
-                                        <FormLabel htmlFor="proxyUrl">{t('proxy_url_optional')}</FormLabel>
-                                        <FormInput
-                                            id="proxyUrl"
-                                            name="proxyUrl"
-                                            value={formData.proxyUrl}
-                                            onChange={handleChange}
-                                            placeholder="https://your-proxy.com"
                                         />
                                     </FormGroup>
 
@@ -507,10 +486,11 @@ const ConfigPage: React.FC = () => {
                                                 <h4>{testResult.success ? t('connection_successful') : t('connection_failed')}</h4>
                                                 <p>{testResult.message}</p>
                                                 {testResult.success && testResult.response && (
-                                                    <div style={{ marginTop: '8px' }}>
+                                                    <div style={{marginTop: '8px'}}>
                                                         <JSONEditor
                                                             value={JSON.stringify(testResult.response, null, 2)}
-                                                            onChange={() => {}}
+                                                            onChange={() => {
+                                                            }}
                                                             height="250px"
                                                             readOnly={true}
                                                         />
@@ -843,16 +823,6 @@ const TestResult = styled(motion.div)`
     }
 `;
 
-const TestResultCode = styled.pre`
-    padding: 12px;
-    background-color: rgba(0, 0, 0, 0.05);
-    border-radius: ${({theme}) => theme.borderRadius};
-    overflow-x: auto;
-    font-family: monospace;
-    font-size: 0.9rem;
-    margin: 8px 0 0;
-    max-height: 300px;
-`;
 
 const EmptyState = styled(motion.div)`
     padding: 40px 20px;

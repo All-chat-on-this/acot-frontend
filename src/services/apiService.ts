@@ -47,7 +47,6 @@ const mockConfigs = [
     name: 'ChatGPT-like Config',
     apiUrl: 'https://api.example.com/chat/completions',
     apiKey: 'sk-mock12345',
-    proxyUrl: '',
     headers: {
       'Content-Type': 'application/json'
     },
@@ -70,7 +69,6 @@ const mockConfigs = [
     name: 'Claude Config with Thinking',
     apiUrl: 'https://api.example.com/claude/chat',
     apiKey: 'sk-claude-mock12345',
-    proxyUrl: '',
     headers: {
       'Content-Type': 'application/json',
       'Anthropic-Version': '2023-06-01'
