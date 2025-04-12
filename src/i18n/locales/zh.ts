@@ -81,8 +81,6 @@ const zhTranslation = {
   delete: '删除',
   api_url: 'API URL',
   api_key: 'API密钥',
-  proxy_url: '代理URL',
-  proxy_url_optional: '代理URL（可选）',
   request_template: '请求模板',
   response_template: '响应模板',
   new_configuration: '新建配置',

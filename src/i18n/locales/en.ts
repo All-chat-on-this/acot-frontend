@@ -81,8 +81,6 @@ const enTranslation = {
   delete: 'Delete',
   api_url: 'API URL',
   api_key: 'API Key',
-  proxy_url: 'Proxy URL',
-  proxy_url_optional: 'Proxy URL (Optional)',
   request_template: 'Request Template',
   response_template: 'Response Template',
   new_configuration: 'New Configuration',

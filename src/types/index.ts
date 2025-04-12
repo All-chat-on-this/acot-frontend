@@ -37,7 +37,6 @@ export interface ApiConfig {
   name: string;
   apiUrl: string;
   apiKey: string;
-  proxyUrl: string;
   headers: Record<string, string>;
   requestTemplate: any;
   responseTemplate: {
