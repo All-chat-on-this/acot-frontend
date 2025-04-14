@@ -118,7 +118,7 @@ const TextArea = styled.textarea`
   padding-right: 44px;
   resize: none;
   min-height: 48px;
-  max-height: 200px;
+  max-height: 500px;
   font-family: inherit;
   font-size: 1rem;
   line-height: 1.5;
