@@ -125,15 +125,6 @@ const Sidebar: React.FC<SidebarProps> = ({isMobileOpen, onMobileClose}) => {
 
     return (
         <>
-            <SidebarOverlay
-                className={isMobileOpen ? 'active' : ''}
-                onClick={onMobileClose}
-                initial={{opacity: 0}}
-                animate={isMobileOpen ? {opacity: 1} : {opacity: 0}}
-                exit={{opacity: 0}}
-                transition={{duration: 0.2}}
-            />
-
             <AnimatePresence mode="wait">
                 {(isMobileOpen || window.innerWidth >= 992) && (
                     <SidebarContainer
@@ -248,28 +239,6 @@ const Sidebar: React.FC<SidebarProps> = ({isMobileOpen, onMobileClose}) => {
         </>
     );
 };
-
-const SidebarOverlay = styled(motion.div)`
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 995;
-    opacity: 0;
-    visibility: hidden;
-    transition: ${colorTransition};
-
-    &.active {
-        opacity: 1;
-        visibility: visible;
-    }
-
-    @media (min-width: 992px) {
-        display: none;
-    }
-`;
 
 const SidebarContainer = styled(motion.aside)`
     position: fixed;

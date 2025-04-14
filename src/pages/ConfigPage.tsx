@@ -323,7 +323,6 @@ const ConfigPage: React.FC = () => {
                                             value={JSON.stringify(currentConfig.requestTemplate, null, 2)}
                                             onChange={() => {
                                             }}
-                                            height="200px"
                                             readOnly={true}
                                         />
                                     </ConfigDetail>
@@ -334,25 +333,9 @@ const ConfigPage: React.FC = () => {
                                             value={JSON.stringify(currentConfig.responseTemplate, null, 2)}
                                             onChange={() => {
                                             }}
-                                            height="150px"
                                             readOnly={true}
                                         />
                                     </ConfigDetail>
-
-                                    <div style={{padding: "15px", backgroundColor: "#f8f9fa", borderRadius: "5px"}}>
-                                        <h4>{t('openai_model_status')}</h4>
-                                        {modelStatus ? (
-                                            <JSONEditor
-                                                value={JSON.stringify(modelStatus, null, 2)}
-                                                onChange={() => {
-                                                }}
-                                                height="200px"
-                                                readOnly={true}
-                                            />
-                                        ) : (
-                                            <Spinner size={20}/>
-                                        )}
-                                    </div>
                                 </ConfigDetailContent>
                             ) : editMode ? (
                                 <ConfigForm

@@ -26,7 +26,7 @@ interface JSONEditorProps {
 const JSONEditor: React.FC<JSONEditorProps> = ({
                                                    value,
                                                    onChange,
-                                                   height = '200px',
+                                                   height ,
                                                    label,
                                                    tooltip,
                                                    error,
@@ -44,6 +44,13 @@ const JSONEditor: React.FC<JSONEditorProps> = ({
         contentField: '',
         thinkingTextField: ''
     });
+
+    // Calculate the actual height respecting min and max constraints
+    const calculatedHeight = () => {
+        // If height is a number (without px), add px
+        const heightValue = typeof height === 'number' ? `${height}px` : height;
+        return heightValue;
+    };
 
     useEffect(() => {
         setEditorValue(value);
@@ -238,11 +245,11 @@ const JSONEditor: React.FC<JSONEditorProps> = ({
                                 {originalJson && originalJson !== editorValue && (
                                     <ReferenceJsonContainer>
                                         <ReferenceHeader>{t('original_json_reference')}</ReferenceHeader>
-                                        <JSONViewer value={originalJson} height="200px"/>
+                                        <JSONViewer value={originalJson}/>
                                     </ReferenceJsonContainer>
                                 )}
                                 <Editor
-                                    height={height}
+                                    height={calculatedHeight()}
                                     defaultLanguage="json"
                                     value={editorValue}
                                     onChange={handleEditorChange}
@@ -269,7 +276,7 @@ const JSONEditor: React.FC<JSONEditorProps> = ({
                         )}
                     </>
                 ) : (
-                    <JSONViewer value={editorValue} height={height}/>
+                    <JSONViewer value={editorValue} height={calculatedHeight()}/>
                 )}
             </EditorWrapper>
 
@@ -344,6 +351,8 @@ const EditorWrapper = styled.div<{ isError: boolean }>`
     border-radius: ${({theme}) => theme.borderRadius};
     overflow: hidden;
     transition: ${colorTransition};
+    min-height: 45px;
+    max-height: 500px;
 
     &:focus-within {
         border-color: ${({theme}) => theme.colors.primary};
@@ -384,7 +393,6 @@ const ErrorMessage = styled.div`
 const PathEditor = styled.div`
     padding: 16px;
     background-color: ${({theme}) => theme.colors.background};
-    min-height: 200px;
 `;
 
 const PathFieldGroup = styled.div`

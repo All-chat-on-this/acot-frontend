@@ -112,10 +112,9 @@ const InputForm = styled(motion.div)`
 
 const TextArea = styled.textarea`
   flex: 1;
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.borderRadius};
-  padding: 12px;
-  padding-right: 44px;
+  border: 1px solid ${({theme}) => theme.colors.border};
+  border-radius: ${({theme}) => theme.borderRadius};
+  padding: 12px 44px 12px 12px;
   resize: none;
   min-height: 48px;
   max-height: 500px;
@@ -123,13 +122,13 @@ const TextArea = styled.textarea`
   font-size: 1rem;
   line-height: 1.5;
   transition: ${colorTransition};
-  
+
   &:focus {
     outline: none;
-    border-color: ${({ theme }) => theme.colors.primary};
-    box-shadow: 0 0 0 2px ${({ theme }) => theme.colors.primary}20;
+    border-color: ${({theme}) => theme.colors.primary};
+    box-shadow: 0 0 0 2px ${({theme}) => theme.colors.primary}20;
   }
-  
+
   &:disabled {
     opacity: 0.7;
     cursor: not-allowed;
