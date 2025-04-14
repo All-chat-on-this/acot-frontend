@@ -23,12 +23,9 @@ const initialPreferences: UserPreferences = {
   saveHistory: true
 };
 
-const usePreferencesStore = create<PreferencesStore>((set, get) => ({
-  preferences: initialPreferences,
-  isLoading: false,
-  error: null,
-
-  fetchPreferences: async () => {
+const usePreferencesStore = create<PreferencesStore>((set, get) => {
+  // Define stable functions outside the returned object
+  const fetchPreferences = async () => {
     set({ isLoading: true, error: null });
     try {
       const preferences = await apiService.preferences.getPreferences();
@@ -39,9 +36,9 @@ const usePreferencesStore = create<PreferencesStore>((set, get) => ({
         error: error instanceof Error ? error.message : 'Failed to fetch preferences' 
       });
     }
-  },
+  };
 
-  updatePreferences: async (newPreferences) => {
+  const updatePreferences = async (newPreferences: Partial<UserPreferences>) => {
     set({ isLoading: true, error: null });
     try {
       const updatedPreferences = await apiService.preferences.updatePreferences({
@@ -55,21 +52,32 @@ const usePreferencesStore = create<PreferencesStore>((set, get) => ({
         error: error instanceof Error ? error.message : 'Failed to update preferences' 
       });
     }
-  },
+  };
 
-  updateTheme: async (theme: ThemeType) => {
+  const updateTheme = async (theme: ThemeType) => {
     get().updatePreferences({ theme });
-  },
+  };
 
-  toggleShowThinking: async () => {
+  const toggleShowThinking = async () => {
     const { showThinking } = get().preferences;
     get().updatePreferences({ showThinking: !showThinking });
-  },
+  };
 
-  toggleSaveHistory: async () => {
+  const toggleSaveHistory = async () => {
     const { saveHistory } = get().preferences;
     get().updatePreferences({ saveHistory: !saveHistory });
-  }
-}));
+  };
+
+  return {
+    preferences: initialPreferences,
+    isLoading: false,
+    error: null,
+    fetchPreferences,
+    updatePreferences,
+    updateTheme,
+    toggleShowThinking,
+    toggleSaveHistory
+  };
+});
 
 export default usePreferencesStore; 

@@ -92,7 +92,7 @@ const demoMessages: Record<number, Message[]> = {
 };
 
 const useConversationStore = create<ConversationState>((set, get) => ({
-    conversations: [],
+    conversations: [...demoConversations],
     currentConversation: null,
     messages: [],
     isLoading: false,
@@ -120,7 +120,7 @@ const useConversationStore = create<ConversationState>((set, get) => ({
         try {
             // Mock API call - replace with actual API call when backend is ready
             // const response = await axios.get(`/api/conversations/${id}`);
-            await new Promise(resolve => setTimeout(resolve, 300)); // Simulate network delay
+            
 
             const conversation = demoConversations.find(c => c.id === id) || null;
             const messages = demoMessages[id] || [];
@@ -143,8 +143,6 @@ const useConversationStore = create<ConversationState>((set, get) => ({
         try {
             // Mock API call - replace with actual API call when backend is ready
             // const response = await axios.post('/api/conversations', { title });
-            await new Promise(resolve => setTimeout(resolve, 300)); // Simulate network delay
-
             const newId = Math.max(0, ...demoConversations.map(c => c.id)) + 1;
             const newConversation: Conversation = {
                 id: newId,
@@ -166,8 +164,8 @@ const useConversationStore = create<ConversationState>((set, get) => ({
                 }
             ];
 
-            set(state => ({
-                conversations: [...state.conversations, newConversation],
+            set(() => ({
+                conversations: [...demoConversations],
                 currentConversation: newConversation,
                 messages: demoMessages[newId],
                 isLoading: false
@@ -186,7 +184,7 @@ const useConversationStore = create<ConversationState>((set, get) => ({
         try {
             // Mock API call - replace with actual API call when backend is ready
             // const response = await axios.put(`/api/conversations/${id}`, data);
-            await new Promise(resolve => setTimeout(resolve, 300)); // Simulate network delay
+            
 
             const conversationIndex = demoConversations.findIndex(c => c.id === id);
             if (conversationIndex === -1) {
@@ -219,7 +217,7 @@ const useConversationStore = create<ConversationState>((set, get) => ({
         try {
             // Mock API call - replace with actual API call when backend is ready
             // await axios.delete(`/api/conversations/${id}`);
-            await new Promise(resolve => setTimeout(resolve, 300)); // Simulate network delay
+            
 
             const index = demoConversations.findIndex(c => c.id === id);
             if (index === -1) {
@@ -308,7 +306,7 @@ const useConversationStore = create<ConversationState>((set, get) => ({
         try {
             // Mock API call - replace with actual API call when backend is ready
             // const response = await axios.put(`/api/messages/${id}`, { content });
-            await new Promise(resolve => setTimeout(resolve, 300)); // Simulate network delay
+            
 
             // Find the message in the demo data
             let updatedMessage: Message | null = null;
@@ -369,7 +367,7 @@ const useConversationStore = create<ConversationState>((set, get) => ({
         try {
             // Mock API call - replace with actual API call when backend is ready
             // await axios.delete(`/api/messages/${id}`);
-            await new Promise(resolve => setTimeout(resolve, 300)); // Simulate network delay
+            
 
             // Find and remove the message from demo data
             for (const convId in demoMessages) {

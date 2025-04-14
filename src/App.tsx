@@ -1,4 +1,4 @@
-import {useEffect} from 'react'
+import {useEffect, useCallback, useState} from 'react'
 import {createBrowserRouter, Navigate, RouterProvider} from 'react-router-dom'
 import {ThemeProvider} from './theme/ThemeProvider'
 import HomePage from './pages/HomePage'
@@ -26,8 +26,7 @@ const ProtectedRoute = ({children}: { children: JSX.Element }) => {
 // Redirect logged-in users away from login page
 const RedirectIfAuthenticated = ({children}: { children: JSX.Element }) => {
     const {isAuthenticated} = useAuthStore()
-    const {createConversation} = useConversationStore()
-    
+
     if (isAuthenticated) {
         // We'll redirect them to a new conversation
         // This is just a placeholder - the actual redirection happens in the component
@@ -38,16 +37,25 @@ const RedirectIfAuthenticated = ({children}: { children: JSX.Element }) => {
 }
 
 function App() {
-    const {checkAuth} = useAuthStore()
-    const {fetchPreferences} = usePreferencesStore()
-    const {fetchConversations} = useConversationStore()
+    const [isInitialized, setIsInitialized] = useState(false);
+    const checkAuth = useAuthStore(state => state.checkAuth);
+    const fetchPreferences = usePreferencesStore(state => state.fetchPreferences);
+    const fetchConversations = useConversationStore(state => state.fetchConversations);
+    
+    // Memoize the initialization function to prevent infinite re-renders
+    const initializeApp = useCallback(() => {
+        if (!isInitialized) {
+            checkAuth();
+            fetchPreferences();
+            fetchConversations();
+            setIsInitialized(true);
+        }
+    }, [checkAuth, fetchPreferences, fetchConversations, isInitialized]);
 
     // Check if user is authenticated on app load
     useEffect(() => {
-        checkAuth()
-        fetchPreferences()
-        fetchConversations()
-    }, [checkAuth, fetchPreferences, fetchConversations])
+        initializeApp();
+    }, [initializeApp]);
 
     // Create router with future flags
     const router = createBrowserRouter([
@@ -71,11 +79,7 @@ function App() {
             path: "*",
             element: <Navigate to="/" replace/>
         }
-    ], {
-        future: {
-            v7_startTransition: true
-        }
-    });
+    ]);
 
     return (
         <ThemeProvider>

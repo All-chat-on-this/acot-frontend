@@ -25,7 +25,6 @@ const Sidebar: React.FC<SidebarProps> = ({isMobileOpen, onMobileClose}) => {
     const formRef = useRef<HTMLFormElement>(null);
 
     const isGlassEffect = preferences.theme === 'dreamlikeColorLight' || preferences.theme === 'dreamlikeColorDark';
-    const isOpen = isMobileOpen !== undefined ? isMobileOpen : true;
 
     useEffect(() => {
         fetchConversations();
@@ -47,7 +46,7 @@ const Sidebar: React.FC<SidebarProps> = ({isMobileOpen, onMobileClose}) => {
 
     const handleNewConversation = async () => {
         try {
-            const newConversation = await createConversation('New Conversation');
+            const newConversation = await createConversation(t('new_conversation'));
             navigate(`/chat/${newConversation.id}`);
         } catch (error) {
             console.error('Failed to create new conversation:', error);
