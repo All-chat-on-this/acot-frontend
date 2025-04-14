@@ -288,7 +288,6 @@ const JSONEditor: React.FC<JSONEditorProps> = ({
 const EditorContainer = styled.div`
     display: flex;
     flex-direction: column;
-    margin-bottom: 16px;
     animation: ${fadeIn} 0.3s ease;
 `;
 

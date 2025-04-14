@@ -64,7 +64,7 @@ const themes: ThemeDefinition = {
       userBubbleText: '#333333',
       assistantBubbleText: '#333333',
       systemBubbleText: '#333333',
-      hover: 'rgba(230, 247, 255, 0.7)'
+      hover: 'rgb(44,154,255)'
     },
     blurAmount: '15px',
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif',

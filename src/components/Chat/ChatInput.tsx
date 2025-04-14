@@ -75,11 +75,6 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }) => {
           title={t('send_message')}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          animate={{ 
-            backgroundColor: (!message.trim() || isLoading) 
-              ? 'rgba(var(--primary-rgb), 0.5)' 
-              : 'rgb(var(--primary-rgb))' 
-          }}
         >
           {isLoading ? (
             <LoadingIcon>

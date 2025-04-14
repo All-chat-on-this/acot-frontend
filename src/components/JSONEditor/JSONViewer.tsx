@@ -54,6 +54,7 @@ const ViewerContainer = styled.div`
         padding: 12px;
         font-family: 'Fira Code', 'Consolas', monospace;
         font-size: 13px;
+        color: ${({theme}) => theme.colors.text};
     }
 
     .hljs {
@@ -75,6 +76,12 @@ const ViewerContainer = styled.div`
 
     .hljs-punctuation {
         color: ${({theme}) => theme.isDark ? '#d4d4d4' : '#24292e'};
+    }
+
+    /* Base text color for light theme */
+
+    .json {
+        color: ${({theme}) => theme.colors.text};
     }
 `;
 

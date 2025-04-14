@@ -5,9 +5,8 @@ import {AnimatePresence, motion} from 'framer-motion';
 import {Layout} from '@/components/Layout';
 import JSONEditor from '@/components/JSONEditor/JSONEditor';
 import useConfigStore from '@/store/configStore';
-import {FiAlertTriangle, FiCheck, FiEdit, FiPlus, FiTrash2, FiX} from 'react-icons/fi';
+import {FiAlertTriangle, FiCheck, FiEdit, FiEye, FiEyeOff, FiPlus, FiTrash2, FiX} from 'react-icons/fi';
 import {colorTransition, fadeIn, slideUp} from '@/styles/animations';
-import Spinner from '@/components/Spinner';
 
 const ConfigPage: React.FC = () => {
     const {t} = useTranslation();
@@ -23,7 +22,6 @@ const ConfigPage: React.FC = () => {
         testResult,
         isLoading,
         error,
-        modelStatus,
         fetchModelStatus
     } = useConfigStore();
 
@@ -41,6 +39,8 @@ const ConfigPage: React.FC = () => {
         contentField: 'choices[0].message.content',
         thinkingTextField: null
     });
+
+    const [showApiKey, setShowApiKey] = useState(false);
 
     useEffect(() => {
         fetchConfigs();
@@ -191,6 +191,10 @@ const ConfigPage: React.FC = () => {
         }
     };
 
+    const toggleApiKeyVisibility = () => {
+        setShowApiKey(prev => !prev);
+    };
+
     // Animation variants
     const pageVariants = {
         initial: {opacity: 0},
@@ -202,7 +206,6 @@ const ConfigPage: React.FC = () => {
         initial: {opacity: 0, y: 5},
         animate: {opacity: 1, y: 0, transition: {duration: 0.2}},
         hover: {
-            backgroundColor: 'rgba(var(--primary-rgb), 0.1)',
             scale: 1.01,
             transition: {duration: 0.15}
         },
@@ -288,7 +291,6 @@ const ConfigPage: React.FC = () => {
                                                 onClick={handleEditConfig}
                                                 whileHover={{
                                                     scale: 1.05,
-                                                    backgroundColor: 'rgba(var(--primary-rgb), 0.85)'
                                                 }}
                                                 whileTap={{scale: 0.95}}
                                             >
@@ -314,7 +316,12 @@ const ConfigPage: React.FC = () => {
 
                                     <ConfigDetail>
                                         <ConfigDetailLabel>{t('api_key')}</ConfigDetailLabel>
-                                        <ConfigDetailValue>••••••••••••••••••••••</ConfigDetailValue>
+                                        <ConfigDetailValueWithIcon>
+                                            <ConfigDetailValue>{showApiKey ? currentConfig.apiKey : '••••••••••••••••••••••'}</ConfigDetailValue>
+                                            <EyeIconButton onClick={toggleApiKeyVisibility}>
+                                                {showApiKey ? <FiEyeOff size={18}/> : <FiEye size={18}/>}
+                                            </EyeIconButton>
+                                        </ConfigDetailValueWithIcon>
                                     </ConfigDetail>
 
                                     <ConfigDetail>
@@ -374,14 +381,20 @@ const ConfigPage: React.FC = () => {
 
                                     <FormGroup>
                                         <FormLabel htmlFor="apiKey">{t('api_key')}</FormLabel>
-                                        <FormInput
-                                            id="apiKey"
-                                            name="apiKey"
-                                            value={formData.apiKey}
-                                            onChange={handleChange}
-                                            placeholder="sk-..."
-                                            required
-                                        />
+                                        <FormInputWithIcon>
+                                            <FormInput
+                                                id="apiKey"
+                                                name="apiKey"
+                                                type={showApiKey ? "text" : "password"}
+                                                value={formData.apiKey}
+                                                onChange={handleChange}
+                                                placeholder="sk-..."
+                                                required
+                                            />
+                                            <EyeIconButton type="button" onClick={toggleApiKeyVisibility}>
+                                                {showApiKey ? <FiEyeOff size={18}/> : <FiEye size={18}/>}
+                                            </EyeIconButton>
+                                        </FormInputWithIcon>
                                     </FormGroup>
 
                                     <FormGroup>
@@ -413,7 +426,6 @@ const ConfigPage: React.FC = () => {
                                             disabled={isLoading}
                                             whileHover={{
                                                 scale: 1.03,
-                                                backgroundColor: 'rgba(var(--primary-rgb), 0.15)'
                                             }}
                                             whileTap={{scale: 0.97}}
                                         >
@@ -434,7 +446,6 @@ const ConfigPage: React.FC = () => {
                                             disabled={isLoading}
                                             whileHover={{
                                                 scale: 1.03,
-                                                backgroundColor: 'rgba(var(--primary-rgb), 0.85)'
                                             }}
                                             whileTap={{scale: 0.97}}
                                         >
@@ -565,7 +576,6 @@ const ConfigItem = styled(motion.div)`
 
     &.active {
         border-color: ${({theme}) => theme.colors.primary};
-        background-color: rgba(var(--primary-rgb), 0.08);
     }
 `;
 
@@ -629,29 +639,6 @@ const ConfigDetailValue = styled.div`
     font-family: monospace;
     word-break: break-all;
     font-size: 0.95rem;
-`;
-
-const ConfigDetailCode = styled.pre`
-    padding: 12px;
-    background-color: ${({theme}) => theme.colors.input};
-    border-radius: ${({theme}) => theme.borderRadius};
-    overflow-x: auto;
-    font-family: monospace;
-    font-size: 0.9rem;
-    margin: 0;
-
-    &::-webkit-scrollbar {
-        height: 6px;
-    }
-
-    &::-webkit-scrollbar-thumb {
-        background-color: rgba(var(--primary-rgb), 0.3);
-        border-radius: 3px;
-    }
-
-    &::-webkit-scrollbar-track {
-        background-color: rgba(0, 0, 0, 0.05);
-    }
 `;
 
 const ActionButton = styled(motion.button)`
@@ -806,6 +793,47 @@ const TestResult = styled(motion.div)`
     }
 `;
 
+const ConfigDetailValueWithIcon = styled.div`
+    display: flex;
+    align-items: center;
+    position: relative;
+
+    ${ConfigDetailValue} {
+        flex: 1;
+        padding-right: 40px;
+    }
+`;
+
+const FormInputWithIcon = styled.div`
+    display: flex;
+    position: relative;
+    width: 100%;
+
+    ${FormInput} {
+        width: 100%;
+        padding-right: 40px;
+    }
+`;
+
+const EyeIconButton = styled.button`
+    position: absolute;
+    right: 10px;
+    background-color: transparent !important;
+    border: none;
+    cursor: pointer;
+    color: ${({theme}) => theme.colors.text};
+    opacity: 0.6;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    transition: opacity 0.2s;
+
+    &:hover {
+        opacity: 1;
+    }
+`;
 
 const EmptyState = styled(motion.div)`
     padding: 40px 20px;
