@@ -153,7 +153,7 @@ const ConfigPage: React.FC = () => {
             try {
                 // Parse existing template
                 const requestTemplate = JSON.parse(formData.requestTemplate);
-                const previewValue = '********';
+                const previewValue = '*'.repeat(formData.apiKey.length);
 
                 // Create clean template
                 const cleanTemplate = {...requestTemplate};
@@ -680,6 +680,7 @@ const ConfigPage: React.FC = () => {
                                                 onChange={handleChange}
                                                 placeholder="sk-..."
                                                 required
+                                                style={{ width: '100%', paddingRight: '40px' }}
                                             />
                                             <EyeIconButton type="button" onClick={toggleApiKeyVisibility}>
                                                 {showApiKey ? <FiEyeOff size={18}/> : <FiEye size={18}/>}
@@ -768,7 +769,7 @@ const ConfigPage: React.FC = () => {
                                                             fontFamily: 'monospace',
                                                             marginTop: '4px'
                                                         }}>
-                                                            {`"${formData.apiKeyBodyPath}": "********"`}
+                                                            {`'${formData.apiKeyBodyPath}': ${'*'.repeat(formData.apiKey.length)}`}
                                                         </HelperText>
                                                     </>
                                                 )}
