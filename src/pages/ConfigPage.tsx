@@ -100,7 +100,7 @@ const ConfigPage: React.FC = () => {
 
     useEffect(() => {
         handleApiKeyBodyPathChange();
-    }, [formData.apiKeyBodyPath]);
+    }, [formData.apiKeyBodyPath, formData.apiKey]);
 
     const handleNewConfig = () => {
         setEditMode(true);
@@ -340,15 +340,6 @@ const ConfigPage: React.FC = () => {
         }
     `;
 
-    const FormSubGroup = styled.div`
-        margin-top: 12px;
-        margin-bottom: 16px;
-        padding: 14px;
-        border-left: 2px solid ${({theme}) => theme.colors.primary};
-        background-color: ${({theme}) => theme.colors.background};
-        border-radius: ${({theme}) => theme.borderRadius};
-    `;
-
     const HelperText = styled.div`
         font-size: 0.8rem;
         color: ${({theme}) => theme.colors.text};
@@ -420,17 +411,6 @@ const ConfigPage: React.FC = () => {
 
         ${ConfigDetailValue} {
             flex: 1;
-            padding-right: 40px;
-        }
-    `;
-
-    const FormInputWithIcon = styled.div`
-        display: flex;
-        position: relative;
-        width: 100%;
-
-        ${FormInput} {
-            width: 100%;
             padding-right: 40px;
         }
     `;
@@ -680,7 +660,7 @@ const ConfigPage: React.FC = () => {
                                                 onChange={handleChange}
                                                 placeholder="sk-..."
                                                 required
-                                                style={{ width: '100%', paddingRight: '40px' }}
+                                                style={{width: '100%', paddingRight: '40px'}}
                                             />
                                             <EyeIconButton type="button" onClick={toggleApiKeyVisibility}>
                                                 {showApiKey ? <FiEyeOff size={18}/> : <FiEye size={18}/>}
@@ -1065,6 +1045,21 @@ const ConfigForm = styled(motion.form)`
 
 const FormGroup = styled.div`
     margin-bottom: 16px;
+`;
+
+const FormSubGroup = styled.div`
+    margin-top: 12px;
+    margin-bottom: 16px;
+    padding: 14px;
+    border-left: 2px solid ${({theme}) => theme.colors.primary};
+    background-color: ${({theme}) => theme.colors.background};
+    border-radius: ${({theme}) => theme.borderRadius};
+`;
+
+const FormInputWithIcon = styled.div`
+    display: flex;
+    position: relative;
+    width: 100%;
 `;
 
 const FormLabel = styled.label`
