@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useContext} from 'react';
 import styled from 'styled-components';
 import Editor, {OnChange, OnMount} from '@monaco-editor/react';
 import {FaCode, FaCog, FaEdit, FaInfoCircle} from 'react-icons/fa';
@@ -6,6 +6,7 @@ import {motion} from 'framer-motion';
 import {colorTransition, fadeIn} from '@/styles/animations';
 import {useTranslation} from 'react-i18next';
 import JSONViewer from './JSONViewer';
+import {ThemeContext} from '@/theme/ThemeProvider';
 
 interface JSONEditorProps {
     value: string;
@@ -17,7 +18,7 @@ interface JSONEditorProps {
     paths?: {
         roleField?: string;
         contentField?: string;
-        thinkingTextField?: string;
+        thinkingTextField?: string | null;
     };
     onPathsChange?: (paths: object) => void;
     readOnly?: boolean;
@@ -35,6 +36,7 @@ const JSONEditor: React.FC<JSONEditorProps> = ({
                                                    readOnly = false
                                                }) => {
     const {t} = useTranslation();
+    const {isDark} = useContext(ThemeContext);
     const [editorValue, setEditorValue] = useState(value);
     const [showPathEditor, setShowPathEditor] = useState(false);
     const [isEditing, setIsEditing] = useState(!readOnly);
@@ -42,7 +44,7 @@ const JSONEditor: React.FC<JSONEditorProps> = ({
     const [localPaths, setLocalPaths] = useState(paths || {
         roleField: '',
         contentField: '',
-        thinkingTextField: ''
+        thinkingTextField: null
     });
 
     // Calculate the actual height respecting min and max constraints
@@ -254,6 +256,7 @@ const JSONEditor: React.FC<JSONEditorProps> = ({
                                     value={editorValue}
                                     onChange={handleEditorChange}
                                     onMount={handleEditorMount}
+                                    theme={isDark ? 'vs-dark' : 'light'}
                                     options={{
                                         minimap: {enabled: false},
                                         scrollBeyondLastLine: false,

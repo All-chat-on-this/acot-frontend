@@ -37,6 +37,9 @@ export interface ApiConfig {
   name: string;
   apiUrl: string;
   apiKey: string;
+  apiKeyPlacement: 'header' | 'body' | 'custom_header';
+  apiKeyHeader?: string;
+  apiKeyBodyPath?: string;
   headers: Record<string, string>;
   requestTemplate: any;
   responseTemplate: {

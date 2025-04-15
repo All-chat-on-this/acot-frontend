@@ -30,14 +30,19 @@ const ConfigPage: React.FC = () => {
         name: '',
         apiUrl: '',
         apiKey: '',
+        apiKeyPlacement: 'header' as 'header' | 'body' | 'custom_header',
+        apiKeyHeader: '',
+        apiKeyBodyPath: '',
         requestTemplate: '{\n  "model": "gpt-3.5-turbo",\n  "messages": [\n    { "role": "system", "content": "You are a helpful assistant." }\n  ]\n}',
         responseTemplate: '{\n  "roleField": "choices[0].message.role",\n  "contentField": "choices[0].message.content",\n  "thinkingTextField": null\n}'
     });
 
+    const [lastApiKeyBodyPath, setLastApiKeyBodyPath] = useState('');
+
     const [paths, setPaths] = useState({
         roleField: 'choices[0].message.role',
         contentField: 'choices[0].message.content',
-        thinkingTextField: null
+        thinkingTextField: null as string | null
     });
 
     const [showApiKey, setShowApiKey] = useState(false);
@@ -58,9 +63,13 @@ const ConfigPage: React.FC = () => {
                 name: currentConfig.name,
                 apiUrl: currentConfig.apiUrl,
                 apiKey: currentConfig.apiKey,
+                apiKeyPlacement: currentConfig.apiKeyPlacement || 'header',
+                apiKeyHeader: currentConfig.apiKeyHeader || '',
+                apiKeyBodyPath: currentConfig.apiKeyBodyPath || '',
                 requestTemplate: JSON.stringify(currentConfig.requestTemplate, null, 2),
                 responseTemplate: JSON.stringify(currentConfig.responseTemplate, null, 2)
             });
+            setLastApiKeyBodyPath(currentConfig.apiKeyBodyPath || '');
         }
     }, [currentConfig]);
 
@@ -70,9 +79,13 @@ const ConfigPage: React.FC = () => {
                 name: currentConfig.name,
                 apiUrl: currentConfig.apiUrl,
                 apiKey: currentConfig.apiKey,
+                apiKeyPlacement: currentConfig.apiKeyPlacement || 'header',
+                apiKeyHeader: currentConfig.apiKeyHeader || '',
+                apiKeyBodyPath: currentConfig.apiKeyBodyPath || '',
                 requestTemplate: JSON.stringify(currentConfig.requestTemplate, null, 2),
                 responseTemplate: JSON.stringify(currentConfig.responseTemplate, null, 2)
             });
+            setLastApiKeyBodyPath(currentConfig.apiKeyBodyPath || '');
 
             // Extract paths from current config's responseTemplate if it exists
             if (currentConfig.responseTemplate) {
@@ -85,6 +98,10 @@ const ConfigPage: React.FC = () => {
         }
     }, [currentConfig, editMode]);
 
+    useEffect(() => {
+        handleApiKeyBodyPathChange();
+    }, [formData.apiKeyBodyPath]);
+
     const handleNewConfig = () => {
         setEditMode(true);
         setCurrentConfig(null);
@@ -92,14 +109,18 @@ const ConfigPage: React.FC = () => {
             name: t('new_configuration'),
             apiUrl: 'https://api.example.com/chat/completions',
             apiKey: '',
+            apiKeyPlacement: 'header',
+            apiKeyHeader: '',
+            apiKeyBodyPath: '',
             requestTemplate: '{\n  "model": "gpt-3.5-turbo",\n  "messages": [\n    { "role": "system", "content": "You are a helpful assistant." }\n  ]\n}',
             responseTemplate: '{\n  "roleField": "choices[0].message.role",\n  "contentField": "choices[0].message.content",\n  "thinkingTextField": null\n}'
         });
+        setLastApiKeyBodyPath('');
 
         setPaths({
             roleField: 'choices[0].message.role',
             contentField: 'choices[0].message.content',
-            thinkingTextField: null
+            thinkingTextField: null as string | null
         });
     };
 
@@ -114,6 +135,54 @@ const ConfigPage: React.FC = () => {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const {name, value} = e.target;
         setFormData(prev => ({...prev, [name]: value}));
+    };
+
+    // Special handler for API key placement changes to prevent focus loss
+    const handleApiKeyPlacementChange = (value: 'header' | 'body' | 'custom_header') => {
+        setFormData(prev => ({...prev, apiKeyPlacement: value}));
+
+        // If switching to body and path already exists, update template
+        if (value === 'body' && formData.apiKeyBodyPath) {
+            setTimeout(() => handleApiKeyBodyPathChange(), 0);
+        }
+    };
+
+    // Add key to request template when body path input loses focus
+    const handleApiKeyBodyPathChange = () => {
+        if (formData.apiKeyPlacement === 'body' && formData.apiKeyBodyPath) {
+            try {
+                // Parse existing template
+                const requestTemplate = JSON.parse(formData.requestTemplate);
+                const previewValue = '********';
+
+                // Create clean template
+                const cleanTemplate = {...requestTemplate};
+
+                // Remove old API key fields
+                Object.keys(cleanTemplate).forEach(key => {
+                    if (key === lastApiKeyBodyPath) {
+                        delete cleanTemplate[key];
+                    }
+                });
+
+                // Add new API key field
+                cleanTemplate[formData.apiKeyBodyPath] = previewValue;
+                console.log('apiKeyBodyPath:' + formData.apiKeyBodyPath);
+
+                // Update form
+                setFormData(prev => ({
+                    ...prev,
+                    requestTemplate: JSON.stringify(cleanTemplate, null, 2)
+                }));
+
+                console.log('formData.apiKeyBodyPath:' + formData.apiKeyBodyPath);
+
+                // Update last API key body path
+                setLastApiKeyBodyPath(formData.apiKeyBodyPath);
+            } catch (error) {
+                console.error('Cannot update template, invalid JSON:', error);
+            }
+        }
     };
 
     const handleJsonChange = (field: string, value: string) => {
@@ -144,13 +213,31 @@ const ConfigPage: React.FC = () => {
 
         try {
             // Parse JSON templates
-            const requestTemplate = JSON.parse(formData.requestTemplate);
-            const responseTemplate = {...JSON.parse(formData.responseTemplate), ...paths};
+            let requestTemplate = JSON.parse(formData.requestTemplate);
+            const responseTemplate = {
+                ...JSON.parse(formData.responseTemplate),
+                roleField: paths.roleField,
+                contentField: paths.contentField,
+                thinkingTextField: paths.thinkingTextField
+            };
+
+            // If apiKeyPlacement is 'body', ensure the field exists in requestTemplate
+            if (formData.apiKeyPlacement === 'body' && formData.apiKeyBodyPath) {
+                if (requestTemplate[formData.apiKeyBodyPath] === undefined) {
+                    requestTemplate = {
+                        ...requestTemplate,
+                        [formData.apiKeyBodyPath]: formData.apiKey
+                    };
+                }
+            }
 
             const configData = {
                 name: formData.name,
                 apiUrl: formData.apiUrl,
                 apiKey: formData.apiKey,
+                apiKeyPlacement: formData.apiKeyPlacement,
+                apiKeyHeader: formData.apiKeyPlacement === 'custom_header' ? formData.apiKeyHeader : undefined,
+                apiKeyBodyPath: formData.apiKeyPlacement === 'body' ? formData.apiKeyBodyPath : undefined,
                 headers: {'Content-Type': 'application/json'},
                 requestTemplate,
                 responseTemplate
@@ -172,13 +259,31 @@ const ConfigPage: React.FC = () => {
     const handleTestConfig = async () => {
         try {
             // Parse JSON templates
-            const requestTemplate = JSON.parse(formData.requestTemplate);
-            const responseTemplate = {...JSON.parse(formData.responseTemplate), ...paths};
+            let requestTemplate = JSON.parse(formData.requestTemplate);
+            const responseTemplate = {
+                ...JSON.parse(formData.responseTemplate),
+                roleField: paths.roleField,
+                contentField: paths.contentField,
+                thinkingTextField: paths.thinkingTextField
+            };
+
+            // If apiKeyPlacement is 'body', ensure the field exists in requestTemplate
+            if (formData.apiKeyPlacement === 'body' && formData.apiKeyBodyPath) {
+                if (requestTemplate[formData.apiKeyBodyPath] === undefined) {
+                    requestTemplate = {
+                        ...requestTemplate,
+                        [formData.apiKeyBodyPath]: formData.apiKey
+                    };
+                }
+            }
 
             const configData = {
                 name: formData.name,
                 apiUrl: formData.apiUrl,
                 apiKey: formData.apiKey,
+                apiKeyPlacement: formData.apiKeyPlacement,
+                apiKeyHeader: formData.apiKeyPlacement === 'custom_header' ? formData.apiKeyHeader : undefined,
+                apiKeyBodyPath: formData.apiKeyPlacement === 'body' ? formData.apiKeyBodyPath : undefined,
                 headers: {'Content-Type': 'application/json'},
                 requestTemplate,
                 responseTemplate
@@ -211,6 +316,173 @@ const ConfigPage: React.FC = () => {
         },
         tap: {scale: 0.98}
     };
+
+    const RadioGroup = styled.div`
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 16px;
+    `;
+
+    const RadioOption = styled.div`
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+
+        input[type="radio"] {
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        label {
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+    `;
+
+    const FormSubGroup = styled.div`
+        margin-top: 12px;
+        margin-bottom: 16px;
+        padding: 14px;
+        border-left: 2px solid ${({theme}) => theme.colors.primary};
+        background-color: ${({theme}) => theme.colors.background};
+        border-radius: ${({theme}) => theme.borderRadius};
+    `;
+
+    const HelperText = styled.div`
+        font-size: 0.8rem;
+        color: ${({theme}) => theme.colors.text};
+        opacity: 0.7;
+        margin-top: 4px;
+    `;
+
+    const ErrorMessage = styled(motion.div)`
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 16px;
+        padding: 12px;
+        background-color: #ffdede;
+        color: #d33;
+        border-radius: ${({theme}) => theme.borderRadius};
+        animation: ${fadeIn} 0.3s ease;
+    `;
+
+    const TestResult = styled(motion.div)`
+        margin-top: 16px;
+        padding: 16px;
+        border-radius: ${({theme}) => theme.borderRadius};
+
+        h4 {
+            margin: 0 0 12px;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        h4::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        p {
+            margin: 0 0 12px;
+            line-height: 1.5;
+        }
+
+        &.success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+
+            h4::before {
+                background-color: #2e7d32;
+            }
+        }
+
+        &.error {
+            background-color: #ffdede;
+            color: #d33;
+
+            h4::before {
+                background-color: #d33;
+            }
+        }
+    `;
+
+    const ConfigDetailValueWithIcon = styled.div`
+        display: flex;
+        align-items: center;
+        position: relative;
+
+        ${ConfigDetailValue} {
+            flex: 1;
+            padding-right: 40px;
+        }
+    `;
+
+    const FormInputWithIcon = styled.div`
+        display: flex;
+        position: relative;
+        width: 100%;
+
+        ${FormInput} {
+            width: 100%;
+            padding-right: 40px;
+        }
+    `;
+
+    const EyeIconButton = styled.button`
+        position: absolute;
+        right: 10px;
+        background-color: transparent !important;
+        border: none;
+        cursor: pointer;
+        color: ${({theme}) => theme.colors.text};
+        opacity: 0.6;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        transition: opacity 0.2s;
+
+        &:hover {
+            opacity: 1;
+        }
+    `;
+
+    const EmptyState = styled(motion.div)`
+        padding: 40px 20px;
+        text-align: center;
+        color: ${({theme}) => theme.colors.text};
+        opacity: 0.7;
+        border: 1px dashed ${({theme}) => theme.colors.border};
+        border-radius: ${({theme}) => theme.borderRadius};
+        margin: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 300px;
+        white-space: pre-line;
+
+        &::before {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 60px;
+            margin-bottom: 16px;
+            background: ${({theme}) => theme.colors.border};
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24'%3E%3Cpath fill='none' d='M0 0h24v24H0z'/%3E%3Cpath d='M20 22H4a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1zm-1-2V4H5v16h14zM8 7h8v2H8V7zm0 4h8v2H8v-2zm0 4h5v2H8v-2z'/%3E%3C/svg%3E");
+            mask-size: contain;
+            mask-repeat: no-repeat;
+            mask-position: center;
+        }
+    `;
 
     return (
         <Layout>
@@ -325,6 +597,24 @@ const ConfigPage: React.FC = () => {
                                     </ConfigDetail>
 
                                     <ConfigDetail>
+                                        <ConfigDetailLabel>{t('api_key_placement')}</ConfigDetailLabel>
+                                        <ConfigDetailValue>
+                                            {currentConfig.apiKeyPlacement === 'header' && t('default_authorization_header')}
+                                            {currentConfig.apiKeyPlacement === 'custom_header' && (
+                                                <>
+                                                    {t('custom_header')}: {currentConfig.apiKeyHeader}
+                                                </>
+                                            )}
+                                            {currentConfig.apiKeyPlacement === 'body' && (
+                                                <>
+                                                    {t('request_body')}: {currentConfig.apiKeyBodyPath}
+                                                </>
+                                            )}
+                                            {!currentConfig.apiKeyPlacement && t('default_authorization_header')}
+                                        </ConfigDetailValue>
+                                    </ConfigDetail>
+
+                                    <ConfigDetail>
                                         <ConfigDetailLabel>{t('request_template')}</ConfigDetailLabel>
                                         <JSONEditor
                                             value={JSON.stringify(currentConfig.requestTemplate, null, 2)}
@@ -395,6 +685,95 @@ const ConfigPage: React.FC = () => {
                                                 {showApiKey ? <FiEyeOff size={18}/> : <FiEye size={18}/>}
                                             </EyeIconButton>
                                         </FormInputWithIcon>
+                                    </FormGroup>
+
+                                    <FormGroup>
+                                        <FormLabel>{t('api_key_placement')}</FormLabel>
+                                        <RadioGroup>
+                                            <RadioOption>
+                                                <input
+                                                    type="radio"
+                                                    id="placement-header"
+                                                    name="apiKeyPlacement"
+                                                    value="header"
+                                                    checked={formData.apiKeyPlacement === 'header'}
+                                                    onChange={() => handleApiKeyPlacementChange('header')}
+                                                />
+                                                <label
+                                                    htmlFor="placement-header">{t('default_authorization_header')}</label>
+                                            </RadioOption>
+                                            <RadioOption>
+                                                <input
+                                                    type="radio"
+                                                    id="placement-custom-header"
+                                                    name="apiKeyPlacement"
+                                                    value="custom_header"
+                                                    checked={formData.apiKeyPlacement === 'custom_header'}
+                                                    onChange={() => handleApiKeyPlacementChange('custom_header')}
+                                                />
+                                                <label htmlFor="placement-custom-header">{t('custom_header')}</label>
+                                            </RadioOption>
+                                            <RadioOption>
+                                                <input
+                                                    type="radio"
+                                                    id="placement-body"
+                                                    name="apiKeyPlacement"
+                                                    value="body"
+                                                    checked={formData.apiKeyPlacement === 'body'}
+                                                    onChange={() => handleApiKeyPlacementChange('body')}
+                                                />
+                                                <label htmlFor="placement-body">{t('request_body')}</label>
+                                            </RadioOption>
+                                        </RadioGroup>
+
+                                        {formData.apiKeyPlacement === 'custom_header' && (
+                                            <FormSubGroup>
+                                                <FormLabel htmlFor="apiKeyHeader">{t('header_name')}</FormLabel>
+                                                <FormInput
+                                                    id="apiKeyHeader"
+                                                    name="apiKeyHeader"
+                                                    value={formData.apiKeyHeader}
+                                                    onChange={handleChange}
+                                                    placeholder="X-API-Key"
+                                                    required
+                                                />
+                                                <HelperText>{t('header_name_helper')}</HelperText>
+                                            </FormSubGroup>
+                                        )}
+
+                                        {formData.apiKeyPlacement === 'body' && (
+                                            <FormSubGroup>
+                                                <FormLabel htmlFor="apiKeyBodyPath">{t('body_path')}</FormLabel>
+                                                <FormInput
+                                                    id="apiKeyBodyPath"
+                                                    name="apiKeyBodyPath"
+                                                    value={formData.apiKeyBodyPath}
+                                                    onChange={handleChange}
+                                                    placeholder="api_key"
+                                                    required
+                                                />
+                                                <HelperText>
+                                                    {t('body_path_helper')}
+                                                </HelperText>
+
+                                                {formData.apiKeyBodyPath && (
+                                                    <>
+                                                        <HelperText style={{marginTop: '12px', fontWeight: 'bold'}}>
+                                                            {t('api_key_body_note')}
+                                                        </HelperText>
+                                                        <HelperText style={{
+                                                            backgroundColor: 'rgba(0,0,0,0.1)',
+                                                            padding: '6px 8px',
+                                                            borderRadius: '4px',
+                                                            fontFamily: 'monospace',
+                                                            marginTop: '4px'
+                                                        }}>
+                                                            {`"${formData.apiKeyBodyPath}": "********"`}
+                                                        </HelperText>
+                                                    </>
+                                                )}
+                                            </FormSubGroup>
+                                        )}
                                     </FormGroup>
 
                                     <FormGroup>
@@ -736,132 +1115,4 @@ const TestButton = styled(motion.button)`
     }
 `;
 
-const ErrorMessage = styled(motion.div)`
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 16px;
-    padding: 12px;
-    background-color: #ffdede;
-    color: #d33;
-    border-radius: ${({theme}) => theme.borderRadius};
-    animation: ${fadeIn} 0.3s ease;
-`;
-
-const TestResult = styled(motion.div)`
-    margin-top: 16px;
-    padding: 16px;
-    border-radius: ${({theme}) => theme.borderRadius};
-
-    h4 {
-        margin: 0 0 12px;
-        font-size: 1.1rem;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    h4::before {
-        content: '';
-        display: inline-block;
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-    }
-
-    p {
-        margin: 0 0 12px;
-        line-height: 1.5;
-    }
-
-    &.success {
-        background-color: #e8f5e9;
-        color: #2e7d32;
-
-        h4::before {
-            background-color: #2e7d32;
-        }
-    }
-
-    &.error {
-        background-color: #ffdede;
-        color: #d33;
-
-        h4::before {
-            background-color: #d33;
-        }
-    }
-`;
-
-const ConfigDetailValueWithIcon = styled.div`
-    display: flex;
-    align-items: center;
-    position: relative;
-
-    ${ConfigDetailValue} {
-        flex: 1;
-        padding-right: 40px;
-    }
-`;
-
-const FormInputWithIcon = styled.div`
-    display: flex;
-    position: relative;
-    width: 100%;
-
-    ${FormInput} {
-        width: 100%;
-        padding-right: 40px;
-    }
-`;
-
-const EyeIconButton = styled.button`
-    position: absolute;
-    right: 10px;
-    background-color: transparent !important;
-    border: none;
-    cursor: pointer;
-    color: ${({theme}) => theme.colors.text};
-    opacity: 0.6;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    transition: opacity 0.2s;
-
-    &:hover {
-        opacity: 1;
-    }
-`;
-
-const EmptyState = styled(motion.div)`
-    padding: 40px 20px;
-    text-align: center;
-    color: ${({theme}) => theme.colors.text};
-    opacity: 0.7;
-    border: 1px dashed ${({theme}) => theme.colors.border};
-    border-radius: ${({theme}) => theme.borderRadius};
-    margin: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 300px;
-    white-space: pre-line;
-
-    &::before {
-        content: '';
-        display: block;
-        width: 60px;
-        height: 60px;
-        margin-bottom: 16px;
-        background: ${({theme}) => theme.colors.border};
-        mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24'%3E%3Cpath fill='none' d='M0 0h24v24H0z'/%3E%3Cpath d='M20 22H4a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1zm-1-2V4H5v16h14zM8 7h8v2H8V7zm0 4h8v2H8v-2zm0 4h5v2H8v-2z'/%3E%3C/svg%3E");
-        mask-size: contain;
-        mask-repeat: no-repeat;
-        mask-position: center;
-    }
-`;
-
-export default ConfigPage; 
+export default ConfigPage;
