@@ -257,13 +257,14 @@ const MessageRole = styled.div`
 const ThinkingToggle = styled(motion.button)`
     display: flex;
     align-items: center;
-    background: none;
     border: none;
     font-size: 0.75rem;
     color: inherit;
     opacity: 0.7;
     cursor: pointer;
     padding: 0;
+    outline: none;
+    background: transparent !important;
     transition: ${colorTransition};
 
     &:hover {

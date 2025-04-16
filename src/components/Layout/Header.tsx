@@ -107,14 +107,6 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar}) => {
                                     <FiUser size={16}/>
                                     <span>{t('profile')}</span>
                                 </UserMenuItem>
-                                <UserMenuItem
-                                    to="/settings"
-                                    onClick={() => setMenuOpen(false)}
-                                    whileHover={{backgroundColor: 'rgba(24, 144, 255, 0.1)'}}
-                                >
-                                    <FiSettings size={16}/>
-                                    <span>{t('settings')}</span>
-                                </UserMenuItem>
                                 <UserMenuButton
                                     onClick={handleLogout}
                                     whileHover={{backgroundColor: 'rgba(255, 100, 100, 0.1)', color: '#e53935'}}
@@ -331,6 +323,7 @@ const UserMenuItem = styled(motion(Link))`
 
     span {
         margin-left: 12px;
+        font-size: 16px;
     }
 `;
 
@@ -348,6 +341,7 @@ const UserMenuButton = styled(motion.button)`
 
     span {
         margin-left: 12px;
+        font-size: 16px;
     }
 `;
 
