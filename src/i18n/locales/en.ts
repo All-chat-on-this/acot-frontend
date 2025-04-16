@@ -8,14 +8,26 @@ const enTranslation = {
   login: 'Login',
   login_title: 'Login to your account',
   login_subtitle: 'Enter your credentials to access your account',
+  register_title: 'Create your account',
+  register_subtitle: 'Sign up to get started with ACOT',
   username: 'Username',
   password: 'Password',
+  confirm_password: 'Confirm Password',
+  nickname: 'Nickname',
   enter_username: 'Enter your username',
   enter_password: 'Enter your password',
+  enter_nickname: 'Enter your nickname (optional)',
   logging_in: 'Logging in...',
+  registering: 'Registering...',
   no_account: 'Don\'t have an account?',
+  already_have_account: 'Already have an account?',
   register: 'Register',
-  demo_account: 'Demo Account',
+  username_required: 'Username is required',
+  password_required: 'Password is required',
+  passwords_dont_match: 'Passwords do not match',
+  password_too_short: 'Password must be at least 6 characters',
+  login_with_qq: 'Login with QQ',
+  or: 'OR',
   
   // Header/Navigation
   switch_dark_mode: 'Switch to Dark Mode',
@@ -107,9 +119,6 @@ const enTranslation = {
   delete_confirm: 'Are you sure you want to delete "{{name}}"?',
   invalid_json: 'Invalid JSON format. Please check your templates.',
 
-  // Profile
-  nickname:'Nickname',
-  
   // JSON Editor
   format: 'Format',
   path_editor: 'Path Editor',

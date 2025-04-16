@@ -3,6 +3,10 @@ export interface User {
   id: number;
   username: string;
   nickname: string;
+  loginType?: number;
+  token?: string;
+  expiresIn?: number;
+  isNewUser?: boolean;
 }
 
 export interface AuthState {

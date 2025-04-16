@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { ApiConfig } from '@/types';
-import apiService from '@/services/apiService';
+import apiService from '@/api/apiService';
 
 interface ConfigState {
   configs: ApiConfig[];

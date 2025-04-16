@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { UserPreferences } from '@/types';
-import apiService from '@/services/apiService';
+import apiService from '@/api/apiService';
 import { ThemeType } from '@/theme/types';
 
 interface PreferencesState {

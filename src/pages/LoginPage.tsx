@@ -1,24 +1,102 @@
-import React, {FormEvent, useState} from 'react';
-import {Link} from 'react-router-dom';
+import React, {FormEvent, useState, useEffect} from 'react';
+import {Link, useNavigate, useLocation} from 'react-router-dom';
 import styled from 'styled-components';
 import {useTranslation} from 'react-i18next';
 import {Layout} from '@/components/Layout';
 import useAuthStore from '@/store/authStore';
 import {FiAlertTriangle, FiLock, FiUser} from 'react-icons/fi';
+import {SiTencentqq} from 'react-icons/si';
+
+// Social login type constant for URL parameter
+const QQ_SOCIAL_TYPE = 1;
 
 const LoginPage: React.FC = () => {
     const {t} = useTranslation();
+    const navigate = useNavigate();
+    const location = useLocation();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const {login, isLoading, error} = useAuthStore();
+    const {
+        login, 
+        isLoading, 
+        error, 
+        isAuthenticated, 
+        clearErrors, 
+        qqLogin,
+        getQQAuthorizeUrl
+    } = useAuthStore();
+
+    // Clear errors when component mounts or unmounts
+    useEffect(() => {
+        clearErrors();
+        return () => clearErrors();
+    }, [clearErrors]);
+
+    // Redirect if already authenticated
+    useEffect(() => {
+        if (isAuthenticated) {
+            navigate('/');
+        }
+    }, [isAuthenticated, navigate]);
+
+    // Handle QQ OAuth callback
+    useEffect(() => {
+        const handleQQCallback = async () => {
+            const params = new URLSearchParams(location.search);
+            const code = params.get('code');
+            const state = params.get('state');
+            const error = params.get('error');
+            const socialTypeParam = params.get('social_type');
+            
+            if (error) {
+                console.error('QQ login error:', error);
+                return;
+            }
+            
+            if (code && state && socialTypeParam && parseInt(socialTypeParam, 10) === QQ_SOCIAL_TYPE) {
+                try {
+                    await qqLogin(code, state);
+                    navigate('/');
+                } catch (err) {
+                    console.error('Failed to complete QQ login:', err);
+                }
+            }
+        };
+        
+        handleQQCallback();
+    }, [location, qqLogin, navigate]);
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
 
+        if (!username.trim() || !password.trim()) {
+            return;
+        }
+
         try {
             await login(username, password);
+            // Navigate will happen automatically via the useEffect above
         } catch (error) {
             console.error('Login failed:', error);
+            // Error state is already set in the store
+        }
+    };
+
+    const handleQQLogin = async () => {
+        try {
+            // Create a state parameter with a random string for security
+
+            // The redirect URI should point back to this login page
+            const redirectUri = `${window.location.origin}/login?social_type=${QQ_SOCIAL_TYPE}`;
+            
+            const authorizeUrl = await getQQAuthorizeUrl(redirectUri);
+            
+            if (authorizeUrl) {
+                // Redirect to the authorization URL
+                window.location.href = authorizeUrl;
+            }
+        } catch (error) {
+            console.error('Failed to initiate QQ login:', error);
         }
     };
 
@@ -50,6 +128,7 @@ const LoginPage: React.FC = () => {
                             onChange={(e) => setUsername(e.target.value)}
                             placeholder={t('enter_username')}
                             required
+                            disabled={isLoading}
                         />
                     </FormGroup>
 
@@ -64,6 +143,7 @@ const LoginPage: React.FC = () => {
                             onChange={(e) => setPassword(e.target.value)}
                             placeholder={t('enter_password')}
                             required
+                            disabled={isLoading}
                         />
                     </FormGroup>
 
@@ -71,16 +151,25 @@ const LoginPage: React.FC = () => {
                         {isLoading ? t('logging_in') : t('login')}
                     </SubmitButton>
 
+                    <Divider>
+                        <DividerText>{t('or')}</DividerText>
+                    </Divider>
+
+                    <SocialButtons>
+                        <SocialButton 
+                            type="button" 
+                            onClick={handleQQLogin} 
+                            disabled={isLoading}
+                        >
+                            <SiTencentqq />
+                            <span>{t('login_with_qq')}</span>
+                        </SocialButton>
+                    </SocialButtons>
+
                     <FormFooter>
                         <span>{t('no_account')}</span>
                         <RegisterLink to="/register">{t('register')}</RegisterLink>
                     </FormFooter>
-
-                    <DemoAccount>
-                        <h4>{t('demo_account')}</h4>
-                        <p>{t('username')}: demo</p>
-                        <p>{t('password')}: password</p>
-                    </DemoAccount>
                 </LoginForm>
             </LoginContainer>
         </Layout>
@@ -174,6 +263,61 @@ const SubmitButton = styled.button`
     }
 `;
 
+const Divider = styled.div`
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 20px 0;
+
+    &::before,
+    &::after {
+        content: '';
+        flex: 1;
+        border-bottom: 1px solid ${({theme}) => theme.colors.border};
+    }
+`;
+
+const DividerText = styled.span`
+    padding: 0 10px;
+    font-size: 0.9rem;
+    color: ${({theme}) => theme.colors.text};
+    opacity: 0.7;
+`;
+
+const SocialButtons = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+`;
+
+const SocialButton = styled.button`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px;
+    border-radius: ${({theme}) => theme.borderRadius};
+    font-size: 1rem;
+    cursor: pointer;
+    border: 1px solid #12B7F5;
+    background-color: ${({theme}) => theme.colors.background};
+    transition: all 0.2s ease;
+
+    svg {
+        font-size: 1.2rem;
+    }
+
+    &:hover {
+        background-color: ${({theme}) => theme.colors.hover};
+    }
+
+    &:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+`;
+
 const FormFooter = styled.div`
     display: flex;
     justify-content: center;
@@ -209,23 +353,6 @@ const ErrorMessage = styled.div`
 
 const ErrorText = styled.span`
     font-size: 0.9rem;
-`;
-
-const DemoAccount = styled.div`
-    margin-top: 24px;
-    padding: 12px;
-    background-color: ${({theme}) => theme.colors.hover};
-    border-radius: ${({theme}) => theme.borderRadius};
-    font-size: 0.9rem;
-
-    h4 {
-        margin: 0 0 8px;
-        font-size: 1rem;
-    }
-
-    p {
-        margin: 4px 0;
-    }
 `;
 
 export default LoginPage; 

@@ -8,14 +8,26 @@ const zhTranslation = {
     login: '登录',
     login_title: '登录您的账户',
     login_subtitle: '输入您的凭据以访问您的账户',
+    register_title: '创建您的账户',
+    register_subtitle: '注册以开始使用ACOT',
     username: '用户名',
     password: '密码',
+    confirm_password: '确认密码',
+    nickname: '昵称',
     enter_username: '请输入用户名',
     enter_password: '请输入密码',
+    enter_nickname: '请输入昵称（可选）',
     logging_in: '正在登录...',
+    registering: '正在注册...',
     no_account: '还没有账户？',
+    already_have_account: '已有账户？',
     register: '注册',
-    demo_account: '演示账户',
+    username_required: '用户名不能为空',
+    password_required: '密码不能为空',
+    passwords_dont_match: '两次输入的密码不匹配',
+    password_too_short: '密码至少需要6个字符',
+    login_with_qq: '使用QQ登录',
+    or: '或',
 
     // Header/Navigation
     switch_dark_mode: '切换至暗黑模式',
@@ -106,9 +118,6 @@ const zhTranslation = {
     connection_failed: '连接失败',
     delete_confirm: '您确定要删除"{{name}}"吗？',
     invalid_json: 'JSON格式无效。请检查您的模板。',
-
-    // Profile
-    nickname: '昵称',
 
     // JSON Editor
     format: '格式化',
