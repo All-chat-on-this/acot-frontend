@@ -106,6 +106,9 @@ const enTranslation = {
   connection_failed: 'Connection Failed',
   delete_confirm: 'Are you sure you want to delete "{{name}}"?',
   invalid_json: 'Invalid JSON format. Please check your templates.',
+
+  // Profile
+  nickname:'Nickname',
   
   // JSON Editor
   format: 'Format',

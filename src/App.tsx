@@ -5,6 +5,7 @@ import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
 import ChatPage from './pages/ChatPage'
 import ConfigPage from './pages/ConfigPage'
+import ProfilePage from './pages/ProfilePage'
 import useAuthStore from './store/authStore'
 import usePreferencesStore from './store/preferencesStore'
 import useConversationStore from './store/conversationStore'
@@ -74,6 +75,10 @@ function App() {
         {
             path: "/config",
             element: <ProtectedRoute><ConfigPage/></ProtectedRoute>
+        },
+        {
+            path: "/profile",
+            element: <ProtectedRoute><ProfilePage/></ProtectedRoute>
         },
         {
             path: "*",
