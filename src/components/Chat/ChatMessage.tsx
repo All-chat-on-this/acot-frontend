@@ -6,6 +6,7 @@ import {AnimatePresence, motion} from 'framer-motion';
 import {Message} from '@/types';
 import {FiCheck, FiEdit2, FiEye, FiEyeOff, FiX} from 'react-icons/fi';
 import {colorTransition} from '@/styles/animations';
+import useAuthStore from "@/store/authStore.ts";
 
 interface ChatMessageProps {
     message: Message;
@@ -15,6 +16,7 @@ interface ChatMessageProps {
 
 const ChatMessage: React.FC<ChatMessageProps> = ({message, showThinking, onRename}) => {
     const {t} = useTranslation();
+    const { user } = useAuthStore();
     const [showThinkingText, setShowThinkingText] = useState(showThinking);
     const [isEditing, setIsEditing] = useState(false);
     const [editValue, setEditValue] = useState('');
@@ -110,7 +112,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({message, showThinking, onRenam
 
                     {isUser && (
                         <MessageHeader>
-                            <MessageRole>{t('you')}</MessageRole>
+                            <MessageRole>{user?.nickname}</MessageRole>
                             {onRename && !isEditing && (
                                 <EditButton
                                     onClick={startEditing}
