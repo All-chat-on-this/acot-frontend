@@ -49,7 +49,6 @@ const GlobalStyles = createGlobalStyle<{ theme?: ThemeProps }>`
     color: ${({ theme }) => theme?.colors.buttonText};
     border: none;
     border-radius: ${({ theme }) => theme?.borderRadius};
-    padding: 8px 16px;
     cursor: pointer;
     font-family: ${({ theme }) => theme?.fontFamily};
     transition: background-color 0.2s ease;

@@ -85,12 +85,12 @@ const ChatMessage: React.FC<ChatMessageProps> = ({message, showThinking, onRenam
                 }}
             >
                 <MessageContent
-                    className={`
-            ${isUser ? 'user' : ''} 
-            ${isAssistant ? 'assistant' : ''} 
-            ${isSystem ? 'system' : ''}
-            ${isEditing ? 'editing' : ''}
-          `}
+                    className={[
+                        isUser && 'user',
+                        isAssistant && 'assistant',
+                        isSystem && 'system',
+                        isEditing && 'editing'
+                    ].filter(Boolean).join(' ')}
                 >
                     {isAssistant && (
                         <MessageHeader>
@@ -286,6 +286,7 @@ const EditButton = styled(motion.button)`
     opacity: 0;
     cursor: pointer;
     padding: 0;
+    background: transparent !important;
     transition: ${colorTransition};
 
     span {
