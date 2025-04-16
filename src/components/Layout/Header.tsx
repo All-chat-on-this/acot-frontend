@@ -5,7 +5,7 @@ import {useTranslation} from 'react-i18next';
 import {motion} from 'framer-motion';
 import useAuthStore from '@/store/authStore';
 import useTheme from '@/hooks/useTheme';
-import {FiLogOut, FiMenu, FiMoon, FiSettings, FiSun, FiUser} from 'react-icons/fi';
+import {FiLogOut, FiMenu, FiMoon, FiSun, FiUser} from 'react-icons/fi';
 import LanguageSwitch from '../LanguageSwitch';
 import {colorTransition} from '@/styles/animations';
 
