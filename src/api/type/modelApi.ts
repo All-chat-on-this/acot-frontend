@@ -21,7 +21,6 @@ export interface Conversation {
   title: string;
   createTime?: string;
   updateTime?: string;
-  isDeleted?: boolean;
 }
 
 export interface ConversationService {
