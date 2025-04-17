@@ -1,4 +1,4 @@
-import { ModelStatus } from '../type/modelApi';
+import {ModelStatus} from '../type/modelApi';
 import apiClient from '../apiClient';
 
 // Config Types
@@ -41,22 +41,22 @@ export interface ConfigService {
 
 export const configService: ConfigService = {
   getConfigs: async (): Promise<ApiConfig[]> => {
-    const response = await apiClient.get('/configs');
+    const response = await apiClient.get('/config/getConfigs');
     return response.data;
   },
   
   getConfig: async (id: number): Promise<ApiConfig> => {
-    const response = await apiClient.get(`/configs/${id}`);
+    const response = await apiClient.get(`/config/${id}`);
     return response.data;
   },
   
   createConfig: async (configData: Omit<ApiConfig, 'id' | 'userId'>): Promise<ApiConfig> => {
-    const response = await apiClient.post('/configs', configData);
+    const response = await apiClient.post('/config/createConfig', configData);
     return response.data;
   },
   
   updateConfig: async (id: number, configData: Partial<ApiConfig>): Promise<ApiConfig> => {
-    const response = await apiClient.put(`/configs/${id}`, configData);
+    const response = await apiClient.put(`/config/updateConfig/${id}`, configData);
     return response.data;
   },
   
@@ -66,12 +66,12 @@ export const configService: ConfigService = {
   },
   
   testConfig: async (configData: Omit<ApiConfig, 'id' | 'userId'>): Promise<ConfigTestResponse> => {
-    const response = await apiClient.post('/configs/test', configData);
+    const response = await apiClient.post('/config/test', configData);
     return response.data;
   },
   
   getModelStatus: async (configId: number): Promise<ModelStatus> => {
-    const response = await apiClient.get(`/configs/${configId}/models`);
+    const response = await apiClient.get(`/config/${configId}/models`);
     return response.data;
   }
 };

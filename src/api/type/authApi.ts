@@ -21,7 +21,8 @@ export interface AuthService {
   logout(token?: string): Promise<boolean>;
   validateToken(token: string): Promise<boolean>;
   getCurrentUser(): User | null;
-  getUserInfo(userId: number): Promise<User | null>;
+
+  getUserInfo(): Promise<User | null>;
   getSocialAuthorizeUrl(socialType: number, userType: number, redirectUri: string): Promise<string | null>;
   socialLogin(socialType: number, userType: number, code: string, state: string): Promise<AuthResponse>;
   bindSocialAccount(userId: number, socialType: number, userType: number, code: string, state: string): Promise<boolean>;
@@ -167,10 +168,10 @@ export const authService: AuthService = {
       return null;
     }
   },
-  
-  getUserInfo: async (userId: number): Promise<User | null> => {
+
+  getUserInfo: async (): Promise<User | null> => {
     try {
-      const response = await apiClient.get(`/auth/user/${userId}`);
+      const response = await apiClient.get(`/auth/user-information`);
       if (response.data && response.data.data) {
         return response.data.data;
       }
