@@ -44,6 +44,7 @@ export interface ApiConfig {
   name: string;
   apiUrl: string;
   apiKey: string;
+  isAvailable: boolean;
   apiKeyPlacement: 'header' | 'body' | 'custom_header';
   apiKeyHeader?: string;
   apiKeyBodyPath?: string;

@@ -1,4 +1,3 @@
-import {ModelStatus} from '../type/modelApi';
 import apiClient from '../apiClient';
 
 // Config Types
@@ -8,6 +7,10 @@ export interface ApiConfig {
   name: string;
   apiUrl: string;
   apiKey: string;
+  isAvailable: boolean;
+  apiKeyPlacement?: string;
+  apiKeyHeader?: string;
+  apiKeyBodyPath?: string;
   headers: Record<string, string>;
   requestTemplate: Record<string, any>;
   responseTemplate: {
@@ -32,11 +35,12 @@ export interface ConfigTestResponse {
 export interface ConfigService {
   getConfigs(): Promise<ApiConfig[]>;
   getConfig(id: number): Promise<ApiConfig>;
-  createConfig(configData: Omit<ApiConfig, 'id' | 'userId'>): Promise<ApiConfig>;
+
+  createConfig(configData: Omit<ApiConfig, 'id' | 'userId' | 'isAvailable'>): Promise<ApiConfig>;
   updateConfig(id: number, configData: Partial<ApiConfig>): Promise<ApiConfig>;
   deleteConfig(id: number): Promise<boolean>;
-  testConfig(configData: Omit<ApiConfig, 'id' | 'userId'>): Promise<ConfigTestResponse>;
-  getModelStatus(configId: number): Promise<ModelStatus>;
+
+  testConfig(configData: Omit<ApiConfig, 'id' | 'userId' | 'isAvailable'>): Promise<ConfigTestResponse>;
 }
 
 export const configService: ConfigService = {
@@ -49,8 +53,8 @@ export const configService: ConfigService = {
     const response = await apiClient.get(`/config/${id}`);
     return response.data;
   },
-  
-  createConfig: async (configData: Omit<ApiConfig, 'id' | 'userId'>): Promise<ApiConfig> => {
+
+  createConfig: async (configData: Omit<ApiConfig, 'id' | 'userId' | 'isAvailable'>): Promise<ApiConfig> => {
     const response = await apiClient.post('/config/createConfig', configData);
     return response.data;
   },
@@ -64,14 +68,9 @@ export const configService: ConfigService = {
     await apiClient.delete(`/configs/${id}`);
     return true;
   },
-  
-  testConfig: async (configData: Omit<ApiConfig, 'id' | 'userId'>): Promise<ConfigTestResponse> => {
+
+  testConfig: async (configData: Omit<ApiConfig, 'id' | 'userId' | 'isAvailable'>): Promise<ConfigTestResponse> => {
     const response = await apiClient.post('/config/test', configData);
-    return response.data;
-  },
-  
-  getModelStatus: async (configId: number): Promise<ModelStatus> => {
-    const response = await apiClient.get(`/config/${configId}/models`);
     return response.data;
   }
 };

@@ -1,19 +1,5 @@
 import apiClient from '../apiClient';
 
-// Model Types
-export interface ModelInfo {
-  id: string;
-  object: string;
-  created: number;
-  owned_by: string;
-}
-
-export interface ModelStatus {
-  models: ModelInfo[];
-  object: string;
-  data: ModelInfo[];
-}
-
 // Conversation Types
 export interface Conversation {
   id: number;

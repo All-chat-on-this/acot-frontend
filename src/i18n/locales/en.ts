@@ -118,6 +118,8 @@ const enTranslation = {
   connection_failed: 'Connection Failed',
   delete_confirm: 'Are you sure you want to delete "{{name}}"?',
   invalid_json: 'Invalid JSON format. Please check your templates.',
+  available: 'Available',
+  unavailable: 'Unavailable',
 
   // JSON Editor
   format: 'Format',
@@ -133,7 +135,6 @@ const enTranslation = {
   thinking_text_field_description: 'Optional: The JSON path to extract AI\'s thinking process (chain of thought)',
   preview_configuration: 'Preview Configuration',
   code_view: 'Code View',
-  openai_model_status: 'OpenAI Model Status',
   
   // Language
   language: 'Language',

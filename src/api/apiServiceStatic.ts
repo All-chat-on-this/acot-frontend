@@ -87,6 +87,8 @@ const mockConfigs = [
     name: 'ChatGPT-like Config',
     apiUrl: 'https://api.example.com/chat/completions',
     apiKey: 'sk-mock12345',
+    isAvailable: true,
+    apiKeyPlacement: 'header',
     headers: {
       'Content-Type': 'application/json'
     },
@@ -109,6 +111,9 @@ const mockConfigs = [
     name: 'Claude Config with Thinking',
     apiUrl: 'https://api.example.com/claude/chat',
     apiKey: 'sk-claude-mock12345',
+    isAvailable: false,
+    apiKeyPlacement: 'custom_header',
+    apiKeyHeader: 'X-API-Key',
     headers: {
       'Content-Type': 'application/json',
       'Anthropic-Version': '2023-06-01'
@@ -352,6 +357,7 @@ const configService = {
         const newConfig = {
           id: mockConfigs.length + 1,
           userId: user.id,
+          isAvailable: false, // Default to false until tested
           ...configData
         };
         mockConfigs.push(newConfig);
@@ -398,6 +404,14 @@ const configService = {
         // Simple mock response indicating success or failure
         const success = Math.random() > 0.2; // 80% chance of success
         if (success) {
+          // If this config has an ID (it's being updated), update its isAvailable
+          if (configData.id) {
+            const index = mockConfigs.findIndex(c => c.id === configData.id);
+            if (index !== -1) {
+              mockConfigs[index].isAvailable = true;
+            }
+          }
+          
           resolve({
             success: true,
             message: 'Connection successful!',
@@ -408,6 +422,14 @@ const configService = {
             }
           });
         } else {
+          // If this config has an ID (it's being updated), update its isAvailable
+          if (configData.id) {
+            const index = mockConfigs.findIndex(c => c.id === configData.id);
+            if (index !== -1) {
+              mockConfigs[index].isAvailable = false;
+            }
+          }
+          
           resolve({
             success: false,
             message: 'Connection failed. Please check your API URL and credentials.',
@@ -415,81 +437,6 @@ const configService = {
           });
         }
       }, 1000);
-    });
-  },
-  
-  getModelStatus: async (configId: number) => {
-    // Mock getting model status
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          models: [
-            {
-              id: "gpt-3.5-turbo",
-              object: "model",
-              created: 1677610602,
-              owned_by: "openai",
-              permission: [
-                {
-                  id: "modelperm-7gh4GtM9Gi52bBENz6hOiGkQ",
-                  object: "model_permission",
-                  created: 1694208232,
-                  allow_create_engine: false,
-                  allow_sampling: true,
-                  allow_logprobs: true,
-                  allow_search_indices: false,
-                  allow_view: true,
-                  allow_fine_tuning: false,
-                  organization: "*",
-                  group: null,
-                  is_blocking: false
-                }
-              ],
-              root: "gpt-3.5-turbo",
-              parent: null
-            },
-            {
-              id: "gpt-4",
-              object: "model",
-              created: 1687882411,
-              owned_by: "openai",
-              permission: [
-                {
-                  id: "modelperm-nQn8GQbuBcJr8eAZ9XTJzhEU",
-                  object: "model_permission",
-                  created: 1694213596,
-                  allow_create_engine: false,
-                  allow_sampling: true,
-                  allow_logprobs: true,
-                  allow_search_indices: false,
-                  allow_view: true,
-                  allow_fine_tuning: false,
-                  organization: "*",
-                  group: null,
-                  is_blocking: false
-                }
-              ],
-              root: "gpt-4",
-              parent: null
-            }
-          ],
-          object: "list",
-          data: [
-            {
-              id: "gpt-3.5-turbo",
-              object: "model",
-              created: 1677610602,
-              owned_by: "openai"
-            },
-            {
-              id: "gpt-4",
-              object: "model",
-              created: 1687882411,
-              owned_by: "openai"
-            }
-          ]
-        });
-      }, 800);
     });
   }
 };

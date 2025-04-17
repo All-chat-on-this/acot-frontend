@@ -118,6 +118,8 @@ const zhTranslation = {
     connection_failed: '连接失败',
     delete_confirm: '您确定要删除"{{name}}"吗？',
     invalid_json: 'JSON格式无效。请检查您的模板。',
+    available: '可用',
+    unavailable: '不可用',
 
     // JSON Editor
     format: '格式化',
@@ -133,7 +135,6 @@ const zhTranslation = {
     thinking_text_field_description: '可选：从API响应中提取AI思考过程（思维链）的JSON路径',
     preview_configuration: '预览配置',
     code_view: '代码视图',
-    openai_model_status: 'OpenAI模型状态',
 
     // Language
     language: '语言',

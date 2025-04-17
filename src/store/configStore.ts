@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import { ApiConfig } from '@/types';
+import {create} from 'zustand';
+import {ApiConfig} from '@/types';
 import apiService from '@/api/apiService';
 
 interface ConfigState {
@@ -13,19 +13,17 @@ interface ConfigState {
     response?: any;
     error?: string;
   } | null;
-  modelStatus: any | null;
 }
 
 interface ConfigStore extends ConfigState {
   fetchConfigs: () => Promise<void>;
   fetchConfig: (id: number) => Promise<void>;
-  createConfig: (configData: Omit<ApiConfig, 'id' | 'userId'>) => Promise<ApiConfig>;
+  createConfig: (configData: Omit<ApiConfig, 'id' | 'userId' | 'isAvailable'>) => Promise<ApiConfig>;
   updateConfig: (id: number, configData: Partial<ApiConfig>) => Promise<void>;
   deleteConfig: (id: number) => Promise<void>;
   testConfig: (configData: Partial<ApiConfig>) => Promise<void>;
   setCurrentConfig: (config: ApiConfig | null) => void;
   resetTestResult: () => void;
-  fetchModelStatus: (configId: number) => Promise<void>;
 }
 
 const useConfigStore = create<ConfigStore>((set, get) => ({
@@ -34,7 +32,6 @@ const useConfigStore = create<ConfigStore>((set, get) => ({
   isLoading: false,
   error: null,
   testResult: null,
-  modelStatus: null,
 
   fetchConfigs: async () => {
     set({ isLoading: true, error: null });
@@ -137,6 +134,15 @@ const useConfigStore = create<ConfigStore>((set, get) => ({
         testResult: result,
         isLoading: false 
       });
+
+      // If we've successfully tested a saved config, we don't need to update the UI here
+      // because the backend sets isAvailable automatically
+
+      // If the test was successful and we're testing the current config, fetch it again to get updated isAvailable
+      const currentConfig = get().currentConfig;
+      if (result.success && currentConfig && configData.id && currentConfig.id === configData.id) {
+        await get().fetchConfig(currentConfig.id);
+      }
     } catch (error) {
       set({ 
         isLoading: false, 
@@ -156,22 +162,6 @@ const useConfigStore = create<ConfigStore>((set, get) => ({
 
   resetTestResult: () => {
     set({ testResult: null });
-  },
-  
-  fetchModelStatus: async (configId: number) => {
-    set({ isLoading: true, error: null });
-    try {
-      const status = await apiService.configs.getModelStatus(configId);
-      set({ 
-        modelStatus: status,
-        isLoading: false 
-      });
-    } catch (error) {
-      set({ 
-        isLoading: false, 
-        error: error instanceof Error ? error.message : 'Failed to fetch model status'
-      });
-    }
   }
 }));
 
