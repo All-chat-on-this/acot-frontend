@@ -22,16 +22,16 @@ interface ConversationState {
 const demoConversations: Conversation[] = [
     {
         id: 1, 
-        title: 'Conversation about AI ethics', 
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        title: 'Conversation about AI ethics',
+        createTime: new Date().toISOString(),
+        updateTime: new Date().toISOString(),
         userId: 1
     },
     {
         id: 2, 
-        title: 'Technical discussion', 
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        title: 'Technical discussion',
+        createTime: new Date().toISOString(),
+        updateTime: new Date().toISOString(),
         userId: 1
     }
 ];
@@ -44,7 +44,7 @@ const demoMessages: Record<number, Message[]> = {
             role: 'system',
             content: 'You are a helpful AI assistant that discusses technology and ethics topics.',
             thinkingText: null,
-            createdAt: new Date(Date.now() - 100000).toISOString()
+            createTime: new Date(Date.now() - 100000).toISOString()
         },
         {
             id: 2,
@@ -52,7 +52,7 @@ const demoMessages: Record<number, Message[]> = {
             role: 'user',
             content: 'What are the main ethical concerns with AI development?',
             thinkingText: null,
-            createdAt: new Date(Date.now() - 80000).toISOString()
+            createTime: new Date(Date.now() - 80000).toISOString()
         },
         {
             id: 3,
@@ -60,7 +60,7 @@ const demoMessages: Record<number, Message[]> = {
             role: 'assistant',
             content: 'The main ethical concerns with AI development include:\n\n1. **Privacy and surveillance** - AI systems can monitor and collect vast amounts of personal data\n\n2. **Bias and discrimination** - AI can perpetuate or amplify existing societal biases\n\n3. **Autonomy and decision-making** - Questions around AI making important decisions affecting humans\n\n4. **Transparency and explainability** - Many AI systems function as "black boxes"\n\n5. **Job displacement** - Automation potentially replacing human workers\n\n6. **Security risks** - AI systems could be vulnerable to attacks or misuse\n\n7. **Accountability** - Determining responsibility when AI systems cause harm\n\nAddressing these concerns requires interdisciplinary collaboration between technologists, ethicists, policymakers, and the public.',
             thinkingText: 'I need to provide a comprehensive but organized response to this question about AI ethics. I should cover the major areas of concern that ethicists, researchers and policymakers frequently discuss.\n\nLet me think about the key categories of ethical issues:\n- Privacy concerns\n- Bias and fairness problems\n- Questions about autonomy\n- Explainability challenges\n- Economic impacts like job displacement\n- Security considerations\n- Accountability frameworks\n\nI should present these in a structured format with brief explanations of each, while keeping my tone informative but accessible.',
-            createdAt: new Date(Date.now() - 60000).toISOString()
+            createTime: new Date(Date.now() - 60000).toISOString()
         }
     ],
     2: [
@@ -70,7 +70,7 @@ const demoMessages: Record<number, Message[]> = {
             role: 'system',
             content: 'You are a helpful AI assistant that provides technical explanations.',
             thinkingText: null,
-            createdAt: new Date(Date.now() - 50000).toISOString()
+            createTime: new Date(Date.now() - 50000).toISOString()
         },
         {
             id: 5,
@@ -78,7 +78,7 @@ const demoMessages: Record<number, Message[]> = {
             role: 'user',
             content: 'Can you explain how transformers work in machine learning?',
             thinkingText: null,
-            createdAt: new Date(Date.now() - 30000).toISOString()
+            createTime: new Date(Date.now() - 30000).toISOString()
         },
         {
             id: 6,
@@ -86,7 +86,7 @@ const demoMessages: Record<number, Message[]> = {
             role: 'assistant',
             content: 'Transformers are a type of neural network architecture introduced in the 2017 paper "Attention Is All You Need." They revolutionized natural language processing and have become the foundation for models like GPT, BERT, and T5.\n\nKey components of transformers include:\n\n1. **Self-Attention Mechanism**: Allows the model to weigh the importance of different words in a sequence when processing a specific word, capturing contextual relationships regardless of position.\n\n2. **Positional Encoding**: Since transformers process all words simultaneously (not sequentially like RNNs), positional encodings add information about word position in the sequence.\n\n3. **Encoder-Decoder Structure**: Original transformers had encoders to process input and decoders to generate output, though many modern models use only one of these components.\n\n4. **Multi-Head Attention**: Multiple attention mechanisms run in parallel, allowing the model to focus on different aspects of the input simultaneously.\n\n5. **Feed-Forward Networks**: After attention layers, each token is processed independently through feed-forward neural networks.\n\nTransformers can efficiently process sequences in parallel (unlike RNNs which are sequential), allowing for better scaling to larger datasets and models. This parallelization enables the pre-training of massive models on vast amounts of data, which can then be fine-tuned for specific tasks.',
             thinkingText: 'This is a technical question about transformer architecture in machine learning. I should provide a clear, structured explanation that covers the key components while being accessible.\n\nI\'ll start by explaining what transformers are and their significance, then break down the key components:\n\n1. Self-attention mechanism - the core innovation\n2. Positional encoding - how sequence order is maintained\n3. The overall encoder-decoder structure\n4. Multi-head attention - how multiple perspectives are captured\n5. Feed-forward networks - the processing after attention\n\nI should also mention why transformers were revolutionary - mainly their parallelization capabilities compared to previous sequential models like RNNs/LSTMs, and how this enabled scaling to much larger models and datasets.',
-            createdAt: new Date(Date.now() - 10000).toISOString()
+            createTime: new Date(Date.now() - 10000).toISOString()
         }
     ]
 };
@@ -147,8 +147,8 @@ const useConversationStore = create<ConversationState>((set, get) => ({
             const newConversation: Conversation = {
                 id: newId,
                 title,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
+                createTime: new Date().toISOString(),
+                updateTime: new Date().toISOString(),
                 userId: 1, // Assuming current user id is 1
             };
 
@@ -160,7 +160,7 @@ const useConversationStore = create<ConversationState>((set, get) => ({
                     role: 'system',
                     content: 'You are a helpful AI assistant.',
                     thinkingText: null,
-                    createdAt: new Date().toISOString()
+                    createTime: new Date().toISOString()
                 }
             ];
 
@@ -256,7 +256,7 @@ const useConversationStore = create<ConversationState>((set, get) => ({
                 role: 'user',
                 content,
                 thinkingText: null,
-                createdAt: new Date().toISOString()
+                createTime: new Date().toISOString()
             };
 
             demoMessages[currentConversation.id] = [
@@ -283,7 +283,7 @@ const useConversationStore = create<ConversationState>((set, get) => ({
                 role: 'assistant',
                 content: `Thank you for your message: "${content}"\n\nThis is a simulated response since we're in development. In a real deployment, this would come from the configured AI service with ID ${configId}.`,
                 thinkingText: 'This is a simulated thinking process.\n\nIn a real deployment, this would come from the AI service if it supports exposing reasoning steps.\n\nThe thinking text feature helps users understand the AI\'s reasoning process.',
-                createdAt: new Date().toISOString()
+                createTime: new Date().toISOString()
             };
 
             demoMessages[currentConversation.id].push(aiMessage);

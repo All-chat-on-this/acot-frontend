@@ -29,15 +29,55 @@ const mockUsers = [
 ];
 
 const mockConversations = [
-  { id: 1, userId: 1, title: 'My first conversation', createdAt: '2023-08-10T12:00:00Z', updatedAt: '2023-08-10T12:30:00Z' },
-  { id: 2, userId: 1, title: 'Testing ACOT features', createdAt: '2023-08-15T10:00:00Z', updatedAt: '2023-08-15T11:45:00Z' }
+  {
+    id: 1,
+    userId: 1,
+    title: 'My first conversation',
+    createTime: '2023-08-10T12:00:00Z',
+    updateTime: '2023-08-10T12:30:00Z'
+  },
+  {
+    id: 2,
+    userId: 1,
+    title: 'Testing ACOT features',
+    createTime: '2023-08-15T10:00:00Z',
+    updateTime: '2023-08-15T11:45:00Z'
+  }
 ];
 
 const mockMessages = [
-  { id: 1, conversationId: 1, role: 'user', content: 'Hello, how can you help me?', thinkingText: null, createdAt: '2023-08-10T12:00:00Z' },
-  { id: 2, conversationId: 1, role: 'assistant', content: 'Hi there! I\'m an AI assistant. I can help you with various tasks like answering questions, writing content, and more. What would you like help with today?', thinkingText: 'This appears to be a greeting from a human user. I should respond with a friendly introduction explaining my capabilities.', createdAt: '2023-08-10T12:00:05Z' },
-  { id: 3, conversationId: 1, role: 'user', content: 'Can you explain what ACOT is?', thinkingText: null, createdAt: '2023-08-10T12:01:00Z' },
-  { id: 4, conversationId: 1, role: 'assistant', content: 'ACOT stands for "All Chat On This." It\'s a highly customizable AI API platform that allows you to configure and interact with various AI models through a unified interface. You can set up different API endpoints, customize request/response formats, and even view the AI\'s thinking process when available. It offers features like theme customization, conversation management, and data import/export.', thinkingText: 'I need to explain what ACOT is. ACOT is "All Chat On This," a platform for customizable AI interactions through different APIs. I should cover its key features: API configuration, request/response customization, thought chain visibility, theme options, and data management.', createdAt: '2023-08-10T12:01:10Z' }
+  {
+    id: 1,
+    conversationId: 1,
+    role: 'user',
+    content: 'Hello, how can you help me?',
+    thinkingText: null,
+    createTime: '2023-08-10T12:00:00Z'
+  },
+  {
+    id: 2,
+    conversationId: 1,
+    role: 'assistant',
+    content: 'Hi there! I\'m an AI assistant. I can help you with various tasks like answering questions, writing content, and more. What would you like help with today?',
+    thinkingText: 'This appears to be a greeting from a human user. I should respond with a friendly introduction explaining my capabilities.',
+    createTime: '2023-08-10T12:00:05Z'
+  },
+  {
+    id: 3,
+    conversationId: 1,
+    role: 'user',
+    content: 'Can you explain what ACOT is?',
+    thinkingText: null,
+    createTime: '2023-08-10T12:01:00Z'
+  },
+  {
+    id: 4,
+    conversationId: 1,
+    role: 'assistant',
+    content: 'ACOT stands for "All Chat On This." It\'s a highly customizable AI API platform that allows you to configure and interact with various AI models through a unified interface. You can set up different API endpoints, customize request/response formats, and even view the AI\'s thinking process when available. It offers features like theme customization, conversation management, and data import/export.',
+    thinkingText: 'I need to explain what ACOT is. ACOT is "All Chat On This," a platform for customizable AI interactions through different APIs. I should cover its key features: API configuration, request/response customization, thought chain visibility, theme options, and data management.',
+    createTime: '2023-08-10T12:01:10Z'
+  }
 ];
 
 const mockConfigs = [
@@ -183,8 +223,8 @@ const conversationService = {
           id: mockConversations.length + 1,
           userId: user.id,
           title,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
+          createTime: new Date().toISOString(),
+          updateTime: new Date().toISOString()
         };
         mockConversations.push(newConversation);
         resolve(newConversation);
@@ -201,7 +241,7 @@ const conversationService = {
           mockConversations[index] = {
             ...mockConversations[index],
             title,
-            updatedAt: new Date().toISOString()
+            updateTime: new Date().toISOString()
           };
           resolve(mockConversations[index]);
         } else {
@@ -248,7 +288,7 @@ const messageService = {
           role: 'user',
           content,
           thinkingText: null,
-          createdAt: new Date().toISOString()
+          createTime: new Date().toISOString()
         };
         mockMessages.push(userMessage);
         
@@ -263,7 +303,7 @@ const messageService = {
           role: 'assistant',
           content: `This is a mock response to: "${content}". I'm responding as if I'm the AI model configured in "${config?.name}".`,
           thinkingText: showThinking ? `I'm analyzing the user's message: "${content}". This is a mock thinking text that would normally be generated by the AI model.` : null,
-          createdAt: new Date().toISOString()
+          createTime: new Date().toISOString()
         };
         
         // Add a delay to simulate AI thinking

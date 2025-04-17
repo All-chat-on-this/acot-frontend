@@ -177,7 +177,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({message, showThinking, onRenam
                     </AnimatePresence>
 
                     <MessageTime>
-                        {new Date(message.createdAt).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}
+                        {new Date(message.createTime).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}
                     </MessageTime>
                 </MessageContent>
             </motion.div>

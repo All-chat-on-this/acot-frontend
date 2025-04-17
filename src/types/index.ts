@@ -21,17 +21,20 @@ export interface Conversation {
   id: number;
   userId: number;
   title: string;
-  createdAt: string;
-  updatedAt: string;
+    createTime: string;
+    updateTime?: string;
+    isDeleted?: boolean;
 }
 
 export interface Message {
   id: number;
   conversationId: number;
-  role: 'system' | 'assistant' | 'user';
+    role: 'system' | 'assistant' | 'user' | string;
   content: string;
   thinkingText: string | null;
-  createdAt: string;
+    createTime: string;
+    updateTime?: string;
+    isDeleted?: boolean;
 }
 
 // Configuration related types
