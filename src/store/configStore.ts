@@ -1,5 +1,5 @@
 import {create} from 'zustand';
-import {ApiConfig} from '@/types';
+import {ApiConfig} from '@/api/type/configApi.ts';
 import apiService from '@/api/apiService';
 
 interface ConfigState {

@@ -1,5 +1,5 @@
 import {create} from 'zustand';
-import {AuthState} from '@/types';
+import {User} from '@/api/type/authApi.ts';
 import apiService from '@/api/apiService';
 
 // QQ Social Login Constants
@@ -11,7 +11,16 @@ const USER_TYPE = {
     NORMAL: 1
 };
 
-interface AuthStore extends AuthState {
+// Modified AuthResponse to allow null user for state management
+interface AuthState {
+    token: string;
+    user: User | null;
+    isAuthenticated: boolean;
+    isLoading: boolean;
+    error: string | null;
+}
+
+interface AuthStoreActions {
     login: (username: string, password: string) => Promise<void>;
     register: (username: string, password: string, nickname: string) => Promise<void>;
     logout: () => Promise<void>;
@@ -21,6 +30,8 @@ interface AuthStore extends AuthState {
     clearErrors: () => void;
 }
 
+type AuthStore = AuthState & AuthStoreActions;
+
 const useAuthStore = create<AuthStore>((set, get) => {
     // Define the actions outside of the returned object to ensure stability
     const login = async (username: string, password: string) => {
@@ -28,6 +39,7 @@ const useAuthStore = create<AuthStore>((set, get) => {
         try {
             const response = await apiService.auth.login(username, password);
             set({
+                token: response.token,
                 user: response.user,
                 isAuthenticated: true,
                 isLoading: false,
@@ -35,6 +47,7 @@ const useAuthStore = create<AuthStore>((set, get) => {
             });
         } catch (error) {
             set({
+                token: '',
                 user: null,
                 isAuthenticated: false,
                 isLoading: false,
@@ -49,6 +62,7 @@ const useAuthStore = create<AuthStore>((set, get) => {
         try {
             const response = await apiService.auth.register(username, password, nickname);
             set({
+                token: response.token,
                 user: response.user,
                 isAuthenticated: true,
                 isLoading: false,
@@ -56,6 +70,7 @@ const useAuthStore = create<AuthStore>((set, get) => {
             });
         } catch (error) {
             set({
+                token: '',
                 user: null,
                 isAuthenticated: false,
                 isLoading: false,
@@ -73,6 +88,7 @@ const useAuthStore = create<AuthStore>((set, get) => {
                 await apiService.auth.logout(token);
             }
             set({
+                token: '',
                 user: null,
                 isAuthenticated: false,
                 isLoading: false,
@@ -81,6 +97,7 @@ const useAuthStore = create<AuthStore>((set, get) => {
         } catch (error) {
             // Even if logout fails, we clear the local state
             set({
+                token: '',
                 user: null,
                 isAuthenticated: false,
                 isLoading: false,
@@ -92,29 +109,30 @@ const useAuthStore = create<AuthStore>((set, get) => {
     const checkAuth = async () => {
         const token = localStorage.getItem('acot-token');
         const user = apiService.auth.getCurrentUser();
-        
+
         if (!token || !user) {
-            set({user: null, isAuthenticated: false});
+            set({token: '', user: null, isAuthenticated: false});
             return;
         }
-        
+
         try {
             // Validate the token with the backend
             const isValid = await apiService.auth.validateToken(token);
             if (isValid) {
-                set({user, isAuthenticated: true});
+                set({token, user, isAuthenticated: true});
             } else {
                 // If token is invalid, clear storage and state
                 localStorage.removeItem('acot-token');
                 localStorage.removeItem('acot-user');
-                set({user: null, isAuthenticated: false});
+                set({token: '', user: null, isAuthenticated: false});
             }
         } catch (error) {
             // If validation fails, assume token is invalid
             localStorage.removeItem('acot-token');
             localStorage.removeItem('acot-user');
             set({
-                user: null, 
+                token: '',
+                user: null,
                 isAuthenticated: false,
                 error: error instanceof Error ? error.message : 'Session expired'
             });
@@ -126,6 +144,7 @@ const useAuthStore = create<AuthStore>((set, get) => {
         try {
             const response = await apiService.auth.socialLogin(SOCIAL_TYPE.QQ, USER_TYPE.NORMAL, code, state);
             set({
+                token: response.token,
                 user: response.user,
                 isAuthenticated: true,
                 isLoading: false,
@@ -133,6 +152,7 @@ const useAuthStore = create<AuthStore>((set, get) => {
             });
         } catch (error) {
             set({
+                token: '',
                 user: null,
                 isAuthenticated: false,
                 isLoading: false,
@@ -159,6 +179,7 @@ const useAuthStore = create<AuthStore>((set, get) => {
     };
 
     return {
+        token: '',
         user: null,
         isAuthenticated: false,
         isLoading: false,

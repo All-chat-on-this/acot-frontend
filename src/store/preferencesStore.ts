@@ -1,7 +1,7 @@
-import { create } from 'zustand';
-import { UserPreferences } from '@/types';
+import {create} from 'zustand';
+import {UserPreferences} from '@/api/type/userApi.ts';
 import apiService from '@/api/apiService';
-import { ThemeType } from '@/theme/types';
+import {ThemeType} from '@/theme/types';
 
 interface PreferencesState {
   preferences: UserPreferences;

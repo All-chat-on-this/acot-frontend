@@ -52,6 +52,11 @@ const ChatPage: React.FC = () => {
             return;
         }
 
+        if (!currentConversation) {
+            alert(t('no_conversation_selected'));
+            return;
+        }
+
         sendMessage(content, currentConfig.id);
     };
 

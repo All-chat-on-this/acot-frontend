@@ -3,10 +3,10 @@ import styled from 'styled-components';
 import ReactMarkdown from 'react-markdown';
 import {useTranslation} from 'react-i18next';
 import {AnimatePresence, motion} from 'framer-motion';
-import {Message} from '@/types';
 import {FiCheck, FiEdit2, FiEye, FiEyeOff, FiX} from 'react-icons/fi';
 import {colorTransition} from '@/styles/animations';
 import useAuthStore from "@/store/authStore.ts";
+import {Message} from "@/api/type/modelApi.ts";
 
 interface ChatMessageProps {
     message: Message;
@@ -177,7 +177,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({message, showThinking, onRenam
                     </AnimatePresence>
 
                     <MessageTime>
-                        {new Date(message.createTime).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}
+                        {new Date(message.createTime!).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}
                     </MessageTime>
                 </MessageContent>
             </motion.div>

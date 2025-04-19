@@ -9,12 +9,19 @@ export interface Conversation {
   updateTime?: string;
 }
 
-export interface ConversationService {
-  getConversations(): Promise<Conversation[]>;
-  getConversation(id: number): Promise<Conversation>;
-  createConversation(title: string): Promise<Conversation>;
-  updateConversation(id: number, title: string): Promise<Conversation>;
-  deleteConversation(id: number): Promise<boolean>;
+export interface ConversationCreateOrUpdateRequest {
+  title: string;
+}
+
+export interface ConversationPageRequest {
+  pageNo: number;
+  pageSize: number;
+  title?: string;
+}
+
+export interface PageResult<T> {
+  list: T[];
+  total: number;
 }
 
 // Message Types
@@ -26,54 +33,85 @@ export interface Message {
   thinkingText: string | null;
   createTime?: string;
   updateTime?: string;
-  isDeleted?: boolean;
 }
 
-export interface MessageService {
-  getMessages(conversationId: number): Promise<Message[]>;
-  sendMessage(conversationId: number, content: string, configId: number): Promise<Message[]>;
+export interface SendMessageRequest {
+  conversationId: number;
+  configId: number;
+  message: string;
+}
+
+export interface MessageCreateRequest {
+  conversationId: number;
+  role: string;
+  content: string;
+  thinkingText?: string;
 }
 
 // Conversation Implementation
-export const conversationService: ConversationService = {
+export const conversationService = {
   getConversations: async (): Promise<Conversation[]> => {
-    const response = await apiClient.get('/conversations');
-    return response.data;
+    const response = await apiClient.get('/conversation/getConversations');
+    return response.data.data;
+  },
+
+  getConversationPage: async (params: ConversationPageRequest): Promise<PageResult<Conversation>> => {
+    const response = await apiClient.get('/conversation/page', {params});
+    return response.data.data;
   },
   
   getConversation: async (id: number): Promise<Conversation> => {
-    const response = await apiClient.get(`/conversations/${id}`);
-    return response.data;
+    const response = await apiClient.get(`/conversation/${id}`);
+    return response.data.data;
   },
-  
-  createConversation: async (title: string): Promise<Conversation> => {
-    const response = await apiClient.post('/conversations', { title });
-    return response.data;
+
+  createConversation: async (data: ConversationCreateOrUpdateRequest): Promise<Conversation> => {
+    const response = await apiClient.post('/conversation/createConversation', data);
+    return response.data.data;
   },
-  
-  updateConversation: async (id: number, title: string): Promise<Conversation> => {
-    const response = await apiClient.put(`/conversations/${id}`, { title });
-    return response.data;
+
+  updateConversation: async (id: number, data: ConversationCreateOrUpdateRequest): Promise<Conversation> => {
+    const response = await apiClient.put(`/conversation/updateConversation/${id}`, data);
+    return response.data.data;
   },
   
   deleteConversation: async (id: number): Promise<boolean> => {
-    await apiClient.delete(`/conversations/${id}`);
-    return true;
+    const response = await apiClient.delete(`/conversation/conversations/${id}`);
+    return response.data.data;
   }
 };
 
 // Message Implementation
-export const messageService: MessageService = {
+export const messageService = {
   getMessages: async (conversationId: number): Promise<Message[]> => {
-    const response = await apiClient.get(`/conversations/${conversationId}/messages`);
-    return response.data;
-  },
-  
-  sendMessage: async (conversationId: number, content: string, configId: number): Promise<Message[]> => {
-    const response = await apiClient.post(`/conversations/${conversationId}/messages`, { 
-      content, 
-      configId 
+    const response = await apiClient.get('/conversation/message/getMessages', {
+      params: {conversationId}
     });
-    return response.data;
+    return response.data.data;
+  },
+
+  getMessage: async (id: number): Promise<Message> => {
+    const response = await apiClient.get(`/conversation/message/${id}`);
+    return response.data.data;
+  },
+
+  createMessage: async (data: MessageCreateRequest): Promise<Message> => {
+    const response = await apiClient.post('/conversation/message/createMessage', data);
+    return response.data.data;
+  },
+
+  sendMessage: async (data: SendMessageRequest): Promise<Message> => {
+    const response = await apiClient.post('/conversation/message/sendMessage', data);
+    return response.data.data;
+  },
+
+  deleteMessage: async (id: number): Promise<boolean> => {
+    const response = await apiClient.delete(`/conversation/message/${id}`);
+    return response.data.data;
+  },
+
+  deleteConversationMessages: async (conversationId: number): Promise<boolean> => {
+    const response = await apiClient.delete(`/conversation/message/conversation/${conversationId}`);
+    return response.data.data;
   }
 };

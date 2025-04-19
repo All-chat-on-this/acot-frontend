@@ -19,9 +19,9 @@ const HomePage: React.FC = () => {
             if (isAuthenticated) {
                 // If there are existing conversations, redirect to the most recent one
                 if (conversations.length > 0) {
-                    // Sort conversations by updatedAt in descending order
+                    // Sort conversations by updateTime in descending order
                     const sortedConversations = [...conversations].sort(
-                        (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+                        (a, b) => new Date(b.updateTime || 0).getTime() - new Date(a.updateTime || 0).getTime()
                     );
                     navigate(`/chat/${sortedConversations[0].id}`);
                 } else {
