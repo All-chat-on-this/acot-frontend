@@ -17,6 +17,7 @@ interface ConversationState {
     sendMessage: (content: string, configId: number) => Promise<Message>;
     renameMessage: (id: number, content: string) => Promise<Message>;
     deleteMessage: (id: number) => Promise<void>;
+    setConversations: (conversations: Conversation[]) => void;
 }
 
 // For development/demo purposes
@@ -258,6 +259,10 @@ const useConversationStore = create<ConversationState>((set, get) => ({
             set({error: 'Failed to delete message', isLoading: false});
             throw error;
         }
+    },
+
+    setConversations: (conversations: Conversation[]) => {
+        set({conversations});
     }
 }));
 

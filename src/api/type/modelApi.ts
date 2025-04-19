@@ -16,7 +16,7 @@ export interface ConversationCreateOrUpdateRequest {
 export interface ConversationPageRequest {
   pageNo: number;
   pageSize: number;
-  title?: string;
+  searchText?: string;
 }
 
 export interface PageResult<T> {

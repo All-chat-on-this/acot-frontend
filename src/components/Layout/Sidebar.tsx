@@ -1,12 +1,14 @@
-import React, {useEffect, useState, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import styled from 'styled-components';
 import {NavLink, useNavigate} from 'react-router-dom';
 import {useTranslation} from 'react-i18next';
 import {AnimatePresence, motion} from 'framer-motion';
-import {FiMessageSquare, FiPlus, FiSearch, FiSettings, FiX, FiEdit2, FiCheck} from 'react-icons/fi';
+import {FiCheck, FiEdit2, FiMessageSquare, FiPlus, FiSearch, FiSettings, FiX} from 'react-icons/fi';
 import useConversationStore from '@/store/conversationStore';
 import usePreferencesStore from '@/store/preferencesStore';
 import {colorTransition, fadeIn, slideUp} from '@/styles/animations';
+import apiService from '@/api/apiService';
+import {ConversationPageRequest} from '@/api/type/modelApi';
 
 interface SidebarProps {
     isMobileOpen?: boolean;
@@ -15,20 +17,68 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({isMobileOpen, onMobileClose}) => {
     const {t} = useTranslation();
-    const {conversations, fetchConversations, createConversation, updateConversation} = useConversationStore();
+    const {conversations, createConversation, updateConversation, setConversations} = useConversationStore();
     const {preferences} = usePreferencesStore();
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
     const [editingConversationId, setEditingConversationId] = useState<number | null>(null);
     const [editTitle, setEditTitle] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [hasMore, setHasMore] = useState(true);
+    const [currentPage, setCurrentPage] = useState(1);
     const editInputRef = useRef<HTMLInputElement>(null);
     const formRef = useRef<HTMLFormElement>(null);
+    const searchTimeout = useRef<NodeJS.Timeout | null>(null);
+    const loadMoreRef = useRef<HTMLDivElement>(null);
+    const pageSize = 20;
 
     const isGlassEffect = preferences.theme === 'dreamlikeColorLight' || preferences.theme === 'dreamlikeColorDark';
 
+    // Initial data load
     useEffect(() => {
-        fetchConversations();
-    }, [fetchConversations]);
+        loadConversations(1, true);
+    }, []);
+
+    // Setup intersection observer for infinite scrolling
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            entries => {
+                const [entry] = entries;
+                if (entry.isIntersecting && hasMore && !isLoading) {
+                    loadMoreConversations();
+                }
+            },
+            {threshold: 0.5}
+        );
+
+        if (loadMoreRef.current) {
+            observer.observe(loadMoreRef.current);
+        }
+
+        return () => {
+            if (loadMoreRef.current) {
+                observer.unobserve(loadMoreRef.current);
+            }
+        };
+    }, [hasMore, isLoading, loadMoreRef.current]);
+
+    // Handle search with debounce
+    useEffect(() => {
+        if (searchTimeout.current) {
+            clearTimeout(searchTimeout.current);
+        }
+
+        searchTimeout.current = setTimeout(() => {
+            setCurrentPage(1);
+            loadConversations(1, true);
+        }, 300);
+
+        return () => {
+            if (searchTimeout.current) {
+                clearTimeout(searchTimeout.current);
+            }
+        };
+    }, [searchTerm]);
 
     // Setup click outside handler to cancel editing
     useEffect(() => {
@@ -43,6 +93,45 @@ const Sidebar: React.FC<SidebarProps> = ({isMobileOpen, onMobileClose}) => {
             document.removeEventListener("mousedown", handleClickOutside);
         };
     }, [editingConversationId]);
+
+    // Load conversations with pagination
+    const loadConversations = async (page: number, resetList: boolean) => {
+        setIsLoading(true);
+        try {
+            const params: ConversationPageRequest = {
+                pageNo: page,
+                pageSize: pageSize
+            };
+
+            if (searchTerm) {
+                params.searchText = searchTerm;
+            }
+
+            const result = await apiService.conversations.getConversationPage(params);
+
+            const newConversations = result.list;
+
+            if (resetList) {
+                setConversations(newConversations);
+            } else {
+                setConversations([...conversations, ...newConversations]);
+            }
+
+            setHasMore(result.total > (resetList ? newConversations.length : conversations.length + newConversations.length));
+            setCurrentPage(page);
+        } catch (error) {
+            console.error('Failed to load conversations:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Load more conversations when scrolling
+    const loadMoreConversations = () => {
+        if (hasMore && !isLoading) {
+            loadConversations(currentPage + 1, false);
+        }
+    };
 
     const handleNewConversation = async () => {
         try {
@@ -66,10 +155,10 @@ const Sidebar: React.FC<SidebarProps> = ({isMobileOpen, onMobileClose}) => {
 
     const handleSaveTitle = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         if (editingConversationId && editTitle.trim()) {
             try {
-                await updateConversation(editingConversationId, { title: editTitle.trim() });
+                await updateConversation(editingConversationId, {title: editTitle.trim()});
                 setEditingConversationId(null);
             } catch (error) {
                 console.error('Failed to update conversation title:', error);
@@ -83,9 +172,9 @@ const Sidebar: React.FC<SidebarProps> = ({isMobileOpen, onMobileClose}) => {
         }
     };
 
-    const filteredConversations = conversations.filter(conv =>
-        conv.title.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchTerm(e.target.value);
+    };
 
     // Animation variants
     const sidebarVariants = {
@@ -140,10 +229,10 @@ const Sidebar: React.FC<SidebarProps> = ({isMobileOpen, onMobileClose}) => {
                                     type="text"
                                     placeholder={t('search_conversations')}
                                     value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    onChange={handleSearchChange}
                                 />
                                 <SearchIcon>
-                                    <FiSearch/>
+                                    {isLoading ? <SearchingIndicator/> : <FiSearch/>}
                                 </SearchIcon>
                             </SearchContainer>
                             {onMobileClose && (
@@ -165,53 +254,60 @@ const Sidebar: React.FC<SidebarProps> = ({isMobileOpen, onMobileClose}) => {
                         <NavSection>
                             <NavSectionTitle>{t('conversations')}</NavSectionTitle>
                             <ConversationList>
-                                {filteredConversations.length > 0 ? (
-                                    filteredConversations.map((conversation, index) => (
-                                        <div key={conversation.id}>
-                                            {editingConversationId === conversation.id ? (
-                                                <ConversationEditForm 
-                                                    onSubmit={handleSaveTitle} 
-                                                    ref={formRef}
-                                                >
-                                                    <ConversationEditInput
-                                                        ref={editInputRef}
-                                                        type="text"
-                                                        value={editTitle}
-                                                        onChange={(e) => setEditTitle(e.target.value)}
-                                                    />
-                                                    <ConversationEditActions>
-                                                        <EditActionButton 
-                                                            type="submit"
-                                                            className="save"
-                                                        >
-                                                            <FiCheck size={14} />
-                                                        </EditActionButton>
-                                                    </ConversationEditActions>
-                                                </ConversationEditForm>
-                                            ) : (
-                                                <ConversationItem
-                                                    to={`/chat/${conversation.id}`}
-                                                    onClick={handleNavigation}
-                                                    custom={index}
-                                                    variants={itemVariants}
-                                                    initial="hidden"
-                                                    animate="visible"
-                                                    whileHover={{ backgroundColor: 'rgba(24, 144, 255, 0.1)' }}
-                                                    whileTap={{ scale: 0.97 }}
-                                                    className={({isActive}) => isActive ? 'active' : ''}
-                                                >
-                                                    <FiMessageSquare size={16}/>
-                                                    <ConversationTitle>{conversation.title}</ConversationTitle>
-                                                    <EditConversationButton 
-                                                        onClick={(e) => handleEditConversation(conversation.id, conversation.title, e)}
-                                                        whileHover={{ opacity: 1 }}
+                                {conversations.length > 0 ? (
+                                    <>
+                                        {conversations.map((conversation, index) => (
+                                            <div key={conversation.id}>
+                                                {editingConversationId === conversation.id ? (
+                                                    <ConversationEditForm
+                                                        onSubmit={handleSaveTitle}
+                                                        ref={formRef}
                                                     >
-                                                        <FiEdit2 size={14} />
-                                                    </EditConversationButton>
-                                                </ConversationItem>
-                                            )}
-                                        </div>
-                                    ))
+                                                        <ConversationEditInput
+                                                            ref={editInputRef}
+                                                            type="text"
+                                                            value={editTitle}
+                                                            onChange={(e) => setEditTitle(e.target.value)}
+                                                        />
+                                                        <ConversationEditActions>
+                                                            <EditActionButton
+                                                                type="submit"
+                                                                className="save"
+                                                            >
+                                                                <FiCheck size={14}/>
+                                                            </EditActionButton>
+                                                        </ConversationEditActions>
+                                                    </ConversationEditForm>
+                                                ) : (
+                                                    <ConversationItem
+                                                        to={`/chat/${conversation.id}`}
+                                                        onClick={handleNavigation}
+                                                        custom={index}
+                                                        variants={itemVariants}
+                                                        initial="hidden"
+                                                        animate="visible"
+                                                        whileHover={{backgroundColor: 'rgba(24, 144, 255, 0.1)'}}
+                                                        whileTap={{scale: 0.97}}
+                                                        className={({isActive}) => isActive ? 'active' : ''}
+                                                    >
+                                                        <FiMessageSquare size={16}/>
+                                                        <ConversationTitle>{conversation.title}</ConversationTitle>
+                                                        <EditConversationButton
+                                                            onClick={(e) => handleEditConversation(conversation.id, conversation.title, e)}
+                                                            whileHover={{opacity: 1}}
+                                                        >
+                                                            <FiEdit2 size={14}/>
+                                                        </EditConversationButton>
+                                                    </ConversationItem>
+                                                )}
+                                            </div>
+                                        ))}
+                                        {hasMore && (
+                                            <LoadMoreIndicator ref={loadMoreRef}>
+                                                {isLoading ? <SearchingIndicator/> : null}
+                                            </LoadMoreIndicator>
+                                        )}
+                                    </>
                                 ) : (
                                     <EmptyState>
                                         {searchTerm
@@ -226,8 +322,8 @@ const Sidebar: React.FC<SidebarProps> = ({isMobileOpen, onMobileClose}) => {
                             <NavItem
                                 to="/config"
                                 onClick={handleNavigation}
-                                whileHover={{ backgroundColor: 'rgba(24, 144, 255, 0.1)' }}
-                                whileTap={{ scale: 0.97 }}
+                                whileHover={{backgroundColor: 'rgba(24, 144, 255, 0.1)'}}
+                                whileTap={{scale: 0.97}}
                             >
                                 <FiSettings size={16}/>
                                 <span>{t('api_configurations')}</span>
@@ -515,7 +611,7 @@ const EditActionButton = styled.button`
 
     &.save {
         color: ${({theme}) => theme.colors.primary || '#4caf50'};
-        
+
         &:hover {
             background-color: rgba(76, 175, 80, 0.1);
         }
@@ -525,6 +621,30 @@ const EditActionButton = styled.button`
             font-size: 0.85rem;
         }
     }
+`;
+
+// Spinning loader for search indicator
+const SearchingIndicator = styled.div`
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(24, 144, 255, 0.2);
+    border-radius: 50%;
+    border-top-color: ${({theme}) => theme.colors.primary};
+    animation: spinner 0.6s linear infinite;
+
+    @keyframes spinner {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+`;
+
+const LoadMoreIndicator = styled.div`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    height: 40px;
 `;
 
 export default Sidebar; 
