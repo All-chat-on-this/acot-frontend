@@ -4,13 +4,13 @@ import apiClient from '../apiClient';
 export interface Preference {
     theme: string;
     showThinking: boolean;
-    saveHistory: boolean;
+    saveApiKey: boolean;
 }
 
 export interface PreferenceService {
     getPreference(): Promise<Preference>;
 
-    updatePreference(preferences: Partial<Preference>): Promise<Preference>;
+    updatePreference(preference: Partial<Preference>): Promise<Preference>;
 }
 
 // Real API Implementation
@@ -20,8 +20,8 @@ export const preferenceService: PreferenceService = {
         return response.data;
     },
 
-    updatePreference: async (preferences: Partial<Preference>): Promise<Preference> => {
-        const response = await apiClient.put('/preference/updatePreference', preferences);
+    updatePreference: async (preference: Partial<Preference>): Promise<Preference> => {
+        const response = await apiClient.put('/preference/updatePreference', preference);
         return response.data;
     }
 };

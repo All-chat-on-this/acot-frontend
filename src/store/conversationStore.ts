@@ -9,6 +9,10 @@ interface ConversationState {
     isLoading: boolean;
     error: string | null;
 
+
+}
+
+interface ConversationStore extends ConversationState {
     fetchConversations: () => Promise<Conversation[]>;
     fetchConversation: (id: number) => Promise<Conversation>;
     createConversation: (title: string) => Promise<Conversation>;
@@ -23,14 +27,14 @@ interface ConversationState {
 // For development/demo purposes
 const demoConversations: Conversation[] = [
     {
-        id: 1, 
+        id: 1,
         title: 'Conversation about AI ethics',
         createTime: new Date().toISOString(),
         updateTime: new Date().toISOString(),
         userId: 1
     },
     {
-        id: 2, 
+        id: 2,
         title: 'Technical discussion',
         createTime: new Date().toISOString(),
         updateTime: new Date().toISOString(),
@@ -38,7 +42,7 @@ const demoConversations: Conversation[] = [
     }
 ];
 
-const useConversationStore = create<ConversationState>((set, get) => ({
+const useConversationStore = create<ConversationStore>((set, get) => ({
     conversations: [...demoConversations],
     currentConversation: null,
     messages: [],

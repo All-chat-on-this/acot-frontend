@@ -18,7 +18,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({isMobileOpen, onMobileClose}) => {
     const {t} = useTranslation();
     const {conversations, createConversation, updateConversation, setConversations} = useConversationStore();
-    const {preferences} = usePreferenceStore();
+    const {preference} = usePreferenceStore();
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
     const [editingConversationId, setEditingConversationId] = useState<number | null>(null);
@@ -32,7 +32,7 @@ const Sidebar: React.FC<SidebarProps> = ({isMobileOpen, onMobileClose}) => {
     const loadMoreRef = useRef<HTMLDivElement>(null);
     const pageSize = 20;
 
-    const isGlassEffect = preferences.theme === 'dreamlikeColorLight' || preferences.theme === 'dreamlikeColorDark';
+    const isGlassEffect = preference.theme === 'dreamlikeColorLight' || preference.theme === 'dreamlikeColorDark';
 
     // Initial data load
     useEffect(() => {

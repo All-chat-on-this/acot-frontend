@@ -27,7 +27,7 @@ const ChatPage: React.FC = () => {
     } = useConversationStore();
 
     const {currentConfig, fetchConfigs} = useConfigStore();
-    const {preferences} = usePreferenceStore();
+    const {preference} = usePreferenceStore();
 
     useEffect(() => {
         // Fetch configs first to ensure we have one selected
@@ -120,7 +120,7 @@ const ChatPage: React.FC = () => {
                                     <ChatMessage
                                         key={message.id}
                                         message={message}
-                                        showThinking={preferences.showThinking}
+                                        showThinking={preference.showThinking}
                                         onRename={message.role === 'user' ? handleRenameMessage : undefined}
                                     />
                                 ))}

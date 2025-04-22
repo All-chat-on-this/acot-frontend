@@ -3,7 +3,7 @@ import {ThemeProvider as StyledThemeProvider} from 'styled-components';
 import themes from './themes';
 import {ThemeProps, ThemeType} from './types';
 import GlobalStyles from './GlobalStyles';
-import usePreferenceStore from '@/store/userStore.ts';
+import usePreferenceStore from '@/store/preferenceStore.ts';
 
 interface ThemeContextType {
   currentTheme: ThemeType;
@@ -27,12 +27,12 @@ interface ThemeProviderProps {
 }
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  const {preferences} = usePreferenceStore();
-  
-  // Try to get the saved theme from preferences or localStorage, or default to dreamlikeColorLight
+  const {preference} = usePreferenceStore();
+
+  // Try to get the saved theme from preference or localStorage, or default to dreamlikeColorLight
   const [currentTheme, setCurrentTheme] = useState<ThemeType>(() => {
     const savedTheme = localStorage.getItem('acot-theme');
-    return (savedTheme as ThemeType) || preferences.theme || 'dreamlikeColorLight';
+    return (savedTheme as ThemeType) || preference.theme || 'dreamlikeColorLight';
   });
 
   // Get the current theme properties
@@ -52,12 +52,12 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     localStorage.setItem('acot-theme', currentTheme);
   }, [currentTheme]);
 
-  // Sync with preferences when they change
+  // Sync with preference when they change
   useEffect(() => {
-    if (preferences.theme && preferences.theme !== currentTheme) {
-      setCurrentTheme(preferences.theme as ThemeType);
+    if (preference.theme && preference.theme !== currentTheme) {
+      setCurrentTheme(preference.theme as ThemeType);
     }
-  }, [preferences.theme]);
+  }, [preference.theme]);
 
   return (
     <ThemeContext.Provider value={{ currentTheme, setTheme, themeProps, isDark }}>
