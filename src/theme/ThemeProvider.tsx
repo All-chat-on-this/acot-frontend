@@ -1,9 +1,9 @@
-import React, { createContext, useState, useEffect, ReactNode } from 'react';
-import { ThemeProvider as StyledThemeProvider } from 'styled-components';
+import React, {createContext, ReactNode, useEffect, useState} from 'react';
+import {ThemeProvider as StyledThemeProvider} from 'styled-components';
 import themes from './themes';
-import { ThemeType, ThemeProps } from './types';
+import {ThemeProps, ThemeType} from './types';
 import GlobalStyles from './GlobalStyles';
-import usePreferencesStore from '@/store/preferencesStore';
+import usePreferencesStore from '@/store/userStore.ts';
 
 interface ThemeContextType {
   currentTheme: ThemeType;

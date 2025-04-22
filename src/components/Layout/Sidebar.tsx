@@ -254,7 +254,7 @@ const Sidebar: React.FC<SidebarProps> = ({isMobileOpen, onMobileClose}) => {
                         <NavSection>
                             <NavSectionTitle>{t('conversations')}</NavSectionTitle>
                             <ConversationList>
-                                {conversations.length > 0 ? (
+                                {conversations && conversations.length > 0 ? (
                                     <>
                                         {conversations.map((conversation, index) => (
                                             <div key={conversation.id}>

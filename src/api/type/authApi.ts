@@ -1,13 +1,7 @@
 import apiClient from '../apiClient';
+import {User} from "@/types";
 
 // Auth Types
-export interface User {
-  id: number;
-  username: string;
-  nickname: string;
-  loginType?: number;
-  isNewUser?: boolean;
-}
 
 export interface AuthResponse {
   token: string;
