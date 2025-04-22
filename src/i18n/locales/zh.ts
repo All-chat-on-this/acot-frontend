@@ -114,6 +114,7 @@ const zhTranslation = {
     test_connection: '测试连接',
     cancel: '取消',
     save: '保存',
+    saving: '保存中...',
     connection_successful: '连接成功',
     connection_failed: '连接失败',
     delete_confirm: '您确定要删除"{{name}}"吗？',
@@ -139,7 +140,22 @@ const zhTranslation = {
     // Language
     language: '语言',
     english: '英语',
-    chinese: '中文'
+    chinese: '中文',
+
+    // Preferences
+    preferences: '偏好设置',
+    show_thinking: '显示思考过程',
+    save_api_key: '保存API密钥',
+    show_thinking_description: '在可用时显示AI的思考过程',
+    save_api_key_description: '在您的账户设置中存储API密钥',
+    updated_message: '已更新',
+    on: '开启',
+    off: '关闭',
+    confirm: '确认',
+    save_api_key_confirm_title: '禁用API密钥存储',
+    save_api_key_confirm_message: '您确定要禁用API密钥存储吗？这将导致您配置中的所有API密钥丢失。',
+    yes: '是',
+    no: '否'
 };
 
 export default zhTranslation; 

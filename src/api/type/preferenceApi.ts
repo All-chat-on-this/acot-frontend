@@ -5,6 +5,7 @@ export interface Preference {
     theme: string;
     showThinking: boolean;
     saveApiKey: boolean;
+    language: string;
 }
 
 export interface PreferenceService {

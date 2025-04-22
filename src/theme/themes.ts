@@ -1,4 +1,4 @@
-import { ThemeDefinition } from './types';
+import {ThemeDefinition} from './types';
 
 const themes: ThemeDefinition = {
   light: {
@@ -18,7 +18,8 @@ const themes: ThemeDefinition = {
       userBubbleText: '#333333',
       assistantBubbleText: '#333333',
       systemBubbleText: '#333333',
-      hover: '#E6F7FF'
+      hover: '#E6F7FF',
+      dialogBackground: '#FFFFFF'
     },
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif',
     borderRadius: '8px'
@@ -41,7 +42,8 @@ const themes: ThemeDefinition = {
       userBubbleText: '#E0E0E0',
       assistantBubbleText: '#E0E0E0',
       systemBubbleText: '#E0E0E0',
-      hover: '#003A8C'
+      hover: '#003A8C',
+      dialogBackground: '#2D2D2D'
     },
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif',
     borderRadius: '8px'
@@ -64,7 +66,8 @@ const themes: ThemeDefinition = {
       userBubbleText: '#333333',
       assistantBubbleText: '#333333',
       systemBubbleText: '#333333',
-      hover: 'rgb(44,154,255)'
+      hover: 'rgb(44,154,255)',
+      dialogBackground: 'rgba(255, 255, 255, 1)'
     },
     blurAmount: '15px',
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif',
@@ -88,7 +91,8 @@ const themes: ThemeDefinition = {
       userBubbleText: '#E0E0E0',
       assistantBubbleText: '#E0E0E0',
       systemBubbleText: '#E0E0E0',
-      hover: 'rgba(0, 58, 140, 0.7)'
+      hover: 'rgba(0, 58, 140, 0.7)',
+      dialogBackground: 'rgba(30, 30, 50, 1)'
     },
     blurAmount: '15px',
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif',

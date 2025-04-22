@@ -2,6 +2,7 @@ import {create} from 'zustand';
 import {Preference} from '@/api/type/preferenceApi.ts';
 import apiService from '@/api/apiService';
 import {ThemeType} from '@/theme/types';
+import i18n from '@/i18n/i18n';
 
 interface PreferenceState {
   preference: Preference;
@@ -13,6 +14,7 @@ interface PreferenceStore extends PreferenceState {
   fetchPreference: () => Promise<void>;
   updatePreference: (preference: Partial<Preference>) => Promise<void>;
   updateTheme: (theme: ThemeType) => Promise<void>;
+  updateLanguage: (language: string) => Promise<void>;
   toggleShowThinking: () => Promise<void>;
   toggleSaveApiKey: () => Promise<void>;
 }
@@ -20,7 +22,8 @@ interface PreferenceStore extends PreferenceState {
 const initialPreference: Preference = {
   theme: 'dreamlikeColorLight',
   showThinking: false,
-  saveApiKey: true
+  saveApiKey: true,
+  language: 'en'
 };
 
 const usePreferenceStore = create<PreferenceStore>((set, get) => {
@@ -29,6 +32,12 @@ const usePreferenceStore = create<PreferenceStore>((set, get) => {
     set({ isLoading: true, error: null });
     try {
       const preference = await apiService.preference.getPreference();
+
+      // Apply language change to i18n
+      if (preference.language) {
+        i18n.changeLanguage(preference.language);
+      }
+      
       set({preference, isLoading: false});
     } catch (error) {
       set({ 
@@ -45,6 +54,12 @@ const usePreferenceStore = create<PreferenceStore>((set, get) => {
         ...get().preference,
         ...newPreference
       });
+
+      // Apply language change to i18n if updated
+      if (newPreference.language) {
+        i18n.changeLanguage(newPreference.language);
+      }
+      
       set({preference: updatedPreference, isLoading: false});
     } catch (error) {
       set({ 
@@ -56,6 +71,10 @@ const usePreferenceStore = create<PreferenceStore>((set, get) => {
 
   const updateTheme = async (theme: ThemeType) => {
     get().updatePreference({theme});
+  };
+
+  const updateLanguage = async (language: string) => {
+    get().updatePreference({language});
   };
 
   const toggleShowThinking = async () => {
@@ -75,6 +94,7 @@ const usePreferenceStore = create<PreferenceStore>((set, get) => {
     fetchPreference,
     updatePreference,
     updateTheme,
+    updateLanguage,
     toggleShowThinking,
     toggleSaveApiKey
   };

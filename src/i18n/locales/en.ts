@@ -114,6 +114,7 @@ const enTranslation = {
   test_connection: 'Test Connection',
   cancel: 'Cancel',
   save: 'Save',
+    saving: 'Saving...',
   connection_successful: 'Connection Successful',
   connection_failed: 'Connection Failed',
   delete_confirm: 'Are you sure you want to delete "{{name}}"?',
@@ -139,7 +140,22 @@ const enTranslation = {
   // Language
   language: 'Language',
   english: 'English',
-  chinese: 'Chinese'
+    chinese: 'Chinese',
+
+    // Preferences
+    preferences: 'Preferences',
+    show_thinking: 'Show Thinking Process',
+    save_api_key: 'Save API Key',
+    show_thinking_description: 'Display the AI\'s thinking process when available',
+    save_api_key_description: 'Store API keys in your account settings',
+    updated_message: 'Updated',
+    on: 'On',
+    off: 'Off',
+    confirm: 'Confirm',
+    save_api_key_confirm_title: 'Disable API Key Storage',
+    save_api_key_confirm_message: 'Are you sure you want to disable API key storage? This will result in the loss of all API keys in your configuration.',
+    yes: 'Yes',
+    no: 'No'
 };
 
 export default enTranslation; 

@@ -17,6 +17,7 @@ export interface ThemeColors {
   assistantBubbleText: string;
   systemBubbleText: string;
   hover: string;
+    dialogBackground: string;
 }
 
 export interface ThemeProps {
