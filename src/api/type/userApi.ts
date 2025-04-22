@@ -1,40 +1,51 @@
+// User Types
+export interface User {
+    id: number;
+    username: string;
+    nickname: string;
+    loginType?: number;
+    token?: string;
+    expiresIn?: number;
+    isNewUser?: boolean;
+}
+
+export interface UserService {
+    getUserInformation(): Promise<User | null>;
+
+    updateNickname(nickname: string): Promise<boolean>;
+}
+
 import apiClient from '../apiClient';
 
-// Preferences Types
-export interface UserPreferences {
-  theme: string;
-  showThinking: boolean;
-  saveHistory: boolean;
-}
+export const userService: UserService = {
+    getUserInformation: async (): Promise<User | null> => {
+        try {
+            const response = await apiClient.get('/user/information');
+            if (response.data && response.data.data) {
+                return response.data.data;
+            }
+            return null;
+        } catch (error) {
+            console.error('Error fetching user information:', error);
+            return null;
+        }
+    },
 
-export interface PreferencesService {
-  getPreferences(): Promise<UserPreferences>;
-  updatePreferences(preferences: Partial<UserPreferences>): Promise<UserPreferences>;
-}
+    updateNickname: async (nickname: string): Promise<boolean> => {
+        try {
+            const params = new URLSearchParams();
+            params.append('nickname', nickname);
 
-// Main API Service
-export interface ApiService {
-  auth: any;
-  conversations: any;
-  messages: any;
-  configs: any;
-  preferences: PreferencesService;
-  client: any; // AxiosInstance
-  env: {
-    isDevelopment: boolean;
-    isProduction: boolean;
-  };
-}
+            const response = await apiClient.post('/user/update-nickname', params, {
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            });
 
-// Real API Implementation
-export const preferencesService: PreferencesService = {
-  getPreferences: async (): Promise<UserPreferences> => {
-    const response = await apiClient.get('/preferences');
-    return response.data;
-  },
-  
-  updatePreferences: async (preferences: Partial<UserPreferences>): Promise<UserPreferences> => {
-    const response = await apiClient.put('/preferences', preferences);
-    return response.data;
-  }
+            return response.data && response.data.data === true;
+        } catch (error) {
+            console.error('Error updating nickname:', error);
+            return false;
+        }
+    }
 };

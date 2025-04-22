@@ -1,65 +1,27 @@
-// User related types
-export interface User {
-  id: number;
-  username: string;
-  nickname: string;
-  loginType?: number;
-  token?: string;
-  expiresIn?: number;
-  isNewUser?: boolean;
+// Main API Service
+import {PreferenceService} from "@/api/type/preferenceApi.ts";
+import {AuthService} from "@/api/type/authApi.ts";
+import {ConversationService, MessageService} from "@/api/type/modelApi.ts";
+import {ConfigService} from "@/api/type/configApi.ts";
+import {AxiosInstance} from "axios";
+import {UserService} from "@/api/type/userApi.ts";
+
+export interface ApiService {
+    auth: AuthService;
+    conversations: ConversationService;
+    messages: MessageService;
+    configs: ConfigService;
+    preference: PreferenceService;
+    user: UserService;
+    client: AxiosInstance; // AxiosInstance
+    env: {
+        isDevelopment: boolean;
+        isProduction: boolean;
+    };
 }
 
-export interface AuthState {
-  user: User | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  error: string | null;
+export interface CommonResult<T> {
+    code: number;
+    msg: string;
+    data: T;
 }
-
-// Conversation related types
-export interface Conversation {
-  id: number;
-  userId: number;
-  title: string;
-    createTime: string;
-    updateTime?: string;
-    isDeleted?: boolean;
-}
-
-export interface Message {
-  id: number;
-  conversationId: number;
-    role: 'system' | 'assistant' | 'user' | string;
-  content: string;
-  thinkingText: string | null;
-    createTime: string;
-    updateTime?: string;
-    isDeleted?: boolean;
-}
-
-// Configuration related types
-export interface ApiConfig {
-  id: number;
-  userId: number;
-  name: string;
-  apiUrl: string;
-  apiKey: string;
-  isAvailable: boolean;
-  apiKeyPlacement: 'header' | 'body' | 'custom_header';
-  apiKeyHeader?: string;
-  apiKeyBodyPath?: string;
-  headers: Record<string, string>;
-  requestTemplate: any;
-  responseTemplate: {
-    roleField: string;
-    contentField: string;
-    thinkingTextField: string | null;
-  };
-}
-
-// User preferences
-export interface UserPreferences {
-  theme: string;
-  showThinking: boolean;
-  saveHistory: boolean;
-} 

@@ -3,7 +3,7 @@ import {ThemeProvider as StyledThemeProvider} from 'styled-components';
 import themes from './themes';
 import {ThemeProps, ThemeType} from './types';
 import GlobalStyles from './GlobalStyles';
-import usePreferencesStore from '@/store/userStore.ts';
+import usePreferenceStore from '@/store/userStore.ts';
 
 interface ThemeContextType {
   currentTheme: ThemeType;
@@ -27,7 +27,7 @@ interface ThemeProviderProps {
 }
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  const { preferences } = usePreferencesStore();
+  const {preferences} = usePreferenceStore();
   
   // Try to get the saved theme from preferences or localStorage, or default to dreamlikeColorLight
   const [currentTheme, setCurrentTheme] = useState<ThemeType>(() => {

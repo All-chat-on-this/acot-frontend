@@ -1,5 +1,5 @@
 import {create} from 'zustand';
-import {User} from '@/api/type/authApi.ts';
+import {User} from '@/api/type/userApi.ts';
 import apiService from '@/api/apiService';
 
 // QQ Social Login Constants

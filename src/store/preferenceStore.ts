@@ -1,34 +1,34 @@
 import {create} from 'zustand';
-import {UserPreferences} from '@/api/type/userApi.ts';
+import {Preference} from '@/api/type/preferenceApi.ts';
 import apiService from '@/api/apiService';
 import {ThemeType} from '@/theme/types';
 
-interface PreferencesState {
-  preferences: UserPreferences;
+interface PreferenceState {
+  preferences: Preference;
   isLoading: boolean;
   error: string | null;
 }
 
-interface PreferencesStore extends PreferencesState {
-  fetchPreferences: () => Promise<void>;
-  updatePreferences: (preferences: Partial<UserPreferences>) => Promise<void>;
+interface PreferenceStore extends PreferenceState {
+  fetchPreference: () => Promise<void>;
+  updatePreference: (preferences: Partial<Preference>) => Promise<void>;
   updateTheme: (theme: ThemeType) => Promise<void>;
   toggleShowThinking: () => Promise<void>;
   toggleSaveHistory: () => Promise<void>;
 }
 
-const initialPreferences: UserPreferences = {
+const initialPreference: Preference = {
   theme: 'dreamlikeColorLight',
   showThinking: false,
   saveHistory: true
 };
 
-const usePreferencesStore = create<PreferencesStore>((set, get) => {
+const usePreferenceStore = create<PreferenceStore>((set, get) => {
   // Define stable functions outside the returned object
-  const fetchPreferences = async () => {
+  const fetchPreference = async () => {
     set({ isLoading: true, error: null });
     try {
-      const preferences = await apiService.preferences.getPreferences();
+      const preferences = await apiService.preference.getPreference();
       set({ preferences, isLoading: false });
     } catch (error) {
       set({ 
@@ -38,14 +38,14 @@ const usePreferencesStore = create<PreferencesStore>((set, get) => {
     }
   };
 
-  const updatePreferences = async (newPreferences: Partial<UserPreferences>) => {
+  const updatePreference = async (newPreference: Partial<Preference>) => {
     set({ isLoading: true, error: null });
     try {
-      const updatedPreferences = await apiService.preferences.updatePreferences({
+      const updatedPreference = await apiService.preference.updatePreference({
         ...get().preferences,
-        ...newPreferences
+        ...newPreference
       });
-      set({ preferences: updatedPreferences, isLoading: false });
+      set({preferences: updatedPreference, isLoading: false});
     } catch (error) {
       set({ 
         isLoading: false, 
@@ -55,29 +55,29 @@ const usePreferencesStore = create<PreferencesStore>((set, get) => {
   };
 
   const updateTheme = async (theme: ThemeType) => {
-    get().updatePreferences({ theme });
+    get().updatePreference({theme});
   };
 
   const toggleShowThinking = async () => {
     const { showThinking } = get().preferences;
-    get().updatePreferences({ showThinking: !showThinking });
+    get().updatePreference({showThinking: !showThinking});
   };
 
   const toggleSaveHistory = async () => {
     const { saveHistory } = get().preferences;
-    get().updatePreferences({ saveHistory: !saveHistory });
+    get().updatePreference({saveHistory: !saveHistory});
   };
 
   return {
-    preferences: initialPreferences,
+    preferences: initialPreference,
     isLoading: false,
     error: null,
-    fetchPreferences,
-    updatePreferences,
+    fetchPreference,
+    updatePreference,
     updateTheme,
     toggleShowThinking,
     toggleSaveHistory
   };
 });
 
-export default usePreferencesStore; 
+export default usePreferenceStore; 

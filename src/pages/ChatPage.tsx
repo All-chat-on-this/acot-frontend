@@ -7,7 +7,7 @@ import {Layout} from '@/components/Layout';
 import {ChatInput, ChatMessage} from '@/components/Chat';
 import useConversationStore from '@/store/conversationStore';
 import useConfigStore from '@/store/configStore';
-import usePreferencesStore from '@/store/preferencesStore';
+import usePreferenceStore from '@/store/preferenceStore.ts';
 import {slideUp} from '@/styles/animations';
 
 const ChatPage: React.FC = () => {
@@ -27,7 +27,7 @@ const ChatPage: React.FC = () => {
     } = useConversationStore();
 
     const {currentConfig, fetchConfigs} = useConfigStore();
-    const {preferences} = usePreferencesStore();
+    const {preferences} = usePreferenceStore();
 
     useEffect(() => {
         // Fetch configs first to ensure we have one selected

@@ -5,7 +5,7 @@ import {useTranslation} from 'react-i18next';
 import {AnimatePresence, motion} from 'framer-motion';
 import {FiCheck, FiEdit2, FiMessageSquare, FiPlus, FiSearch, FiSettings, FiX} from 'react-icons/fi';
 import useConversationStore from '@/store/conversationStore';
-import usePreferencesStore from '@/store/preferencesStore';
+import usePreferenceStore from '@/store/preferenceStore.ts';
 import {colorTransition, fadeIn, slideUp} from '@/styles/animations';
 import apiService from '@/api/apiService';
 import {ConversationPageRequest} from '@/api/type/modelApi';
@@ -18,7 +18,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({isMobileOpen, onMobileClose}) => {
     const {t} = useTranslation();
     const {conversations, createConversation, updateConversation, setConversations} = useConversationStore();
-    const {preferences} = usePreferencesStore();
+    const {preferences} = usePreferenceStore();
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
     const [editingConversationId, setEditingConversationId] = useState<number | null>(null);

@@ -1,5 +1,5 @@
 import apiClient from '../apiClient';
-import {User} from "@/types";
+import {User} from "./userApi.ts";
 
 // Auth Types
 
@@ -15,8 +15,6 @@ export interface AuthService {
   logout(token?: string): Promise<boolean>;
   validateToken(token: string): Promise<boolean>;
   getCurrentUser(): User | null;
-
-  getUserInfo(): Promise<User | null>;
   getSocialAuthorizeUrl(socialType: number, userType: number, redirectUri: string): Promise<string | null>;
   socialLogin(socialType: number, userType: number, code: string, state: string): Promise<AuthResponse>;
   bindSocialAccount(userId: number, socialType: number, userType: number, code: string, state: string): Promise<boolean>;
@@ -159,19 +157,6 @@ export const authService: AuthService = {
       console.error('Error parsing user data:', error);
       localStorage.removeItem('acot-token');
       localStorage.removeItem('acot-user');
-      return null;
-    }
-  },
-
-  getUserInfo: async (): Promise<User | null> => {
-    try {
-      const response = await apiClient.get(`/auth/user-information`);
-      if (response.data && response.data.data) {
-        return response.data.data;
-      }
-      return null;
-    } catch (error) {
-      console.error('Error fetching user info:', error);
       return null;
     }
   },
