@@ -134,7 +134,7 @@ const zhTranslation = {
     role_field_description: '从API响应中提取角色的JSON路径',
     content_field_description: '从API响应中提取消息内容的JSON路径',
     thinking_text_field_description: '可选：从API响应中提取AI思考过程（思维链）的JSON路径',
-    preview_configuration: '预览配置',
+    current_configuration: '当前配置',
     code_view: '代码视图',
 
     // Language
@@ -144,7 +144,6 @@ const zhTranslation = {
 
     // Preferences
     preferences: '偏好设置',
-    show_thinking: '显示思考过程',
     save_api_key: '保存API密钥',
     show_thinking_description: '在可用时显示AI的思考过程',
     save_api_key_description: '在您的账户设置中存储API密钥',

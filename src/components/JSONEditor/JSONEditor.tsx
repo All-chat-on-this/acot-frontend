@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useContext} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import styled from 'styled-components';
 import Editor, {OnChange, OnMount} from '@monaco-editor/react';
 import {FaCode, FaCog, FaEdit, FaInfoCircle} from 'react-icons/fa';
@@ -27,7 +27,7 @@ interface JSONEditorProps {
 const JSONEditor: React.FC<JSONEditorProps> = ({
                                                    value,
                                                    onChange,
-                                                   height ,
+                                                   height,
                                                    label,
                                                    tooltip,
                                                    error,
@@ -234,12 +234,8 @@ const JSONEditor: React.FC<JSONEditorProps> = ({
                                 </PathFieldGroup>
 
                                 <PathPreview>
-                                    <h4>{t('preview_configuration')}:</h4>
-                                    <pre>{JSON.stringify({
-                                        roleField: localPaths.roleField || null,
-                                        contentField: localPaths.contentField || null,
-                                        thinkingTextField: localPaths.thinkingTextField || null
-                                    }, null, 2)}</pre>
+                                    <h4>{t('current_configuration')}:</h4>
+                                    <pre>{value}</pre>
                                 </PathPreview>
                             </PathEditor>
                         ) : (
@@ -393,7 +389,6 @@ const ErrorMessage = styled.div`
 `;
 
 const PathEditor = styled.div`
-    padding: 16px;
     background-color: ${({theme}) => theme.colors.background};
 `;
 
