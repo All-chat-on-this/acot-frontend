@@ -1,18 +1,15 @@
 import {create} from 'zustand';
 import {ApiConfig} from '@/api/type/configApi.ts';
 import apiService from '@/api/apiService';
+import {CommonResult} from "@/types";
+import {TestResult} from "@/pages/config/ConfigEditForm.tsx";
 
 interface ConfigState {
     configs: ApiConfig[];
     currentConfig: ApiConfig | null;
     isLoading: boolean;
     error: string | null;
-    testResult: {
-        success: boolean;
-        message: string;
-        response?: any;
-        error?: string;
-    } | null;
+    testResult: CommonResult<TestResult> | null;
 }
 
 interface ConfigStore extends ConfigState {

@@ -117,6 +117,7 @@ const zhTranslation = {
     saving: '保存中...',
     connection_successful: '连接成功',
     connection_failed: '连接失败',
+    test_response: '测试响应',
     delete_confirm: '您确定要删除"{{name}}"吗？',
     invalid_json: 'JSON格式无效。请检查您的模板。',
     available: '可用',

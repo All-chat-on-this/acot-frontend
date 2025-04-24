@@ -1,5 +1,6 @@
 import apiClient from '../apiClient';
 import {CommonResult} from "@/types";
+import {TestResult} from "@/pages/config/ConfigEditForm.tsx";
 
 // Config Types
 export interface ApiConfig {
@@ -14,32 +15,17 @@ export interface ApiConfig {
     apiKeyBodyPath?: string;
     headers: Record<string, string>;
     requestTemplate: Record<string, string>;
-    responseTemplate: {
-        roleField: string;
-        contentField: string;
-        thinkingTextField: string | null;
-    };
+    responseTemplate: Record<string, string>;
     // Request Role field names
     requestUserRoleField?: string;
     requestAssistantField?: string;
     requestSystemField?: string;
     // Request and Response handling strategy
-    requestMessageGroupPathFromGroup?: string;
+    requestMessageGroupPath?: string;
     requestRolePathFromGroup?: string;
     requestTextPathFromGroup?: string;
     responseTextPath?: string;
     responseThinkingTextPath?: string;
-}
-
-export interface ConfigTestResponse {
-    success: boolean;
-    message: string;
-    response?: {
-        role: string;
-        content: string;
-        thinking?: string;
-    };
-    error?: string;
 }
 
 // Service Interface
@@ -54,7 +40,7 @@ export interface ConfigService {
 
     deleteConfig(id: number): Promise<boolean>;
 
-    testConfig(configData: ApiConfig): Promise<ConfigTestResponse>;
+    testConfig(configData: ApiConfig): Promise<CommonResult<TestResult>>;
 }
 
 export const configService: ConfigService = {
@@ -79,11 +65,11 @@ export const configService: ConfigService = {
     },
 
     deleteConfig: async (id: number): Promise<boolean> => {
-        await apiClient.delete(`/configs/${id}`);
+        await apiClient.delete(`/config/${id}`);
         return true;
     },
 
-    testConfig: async (configData: Omit<ApiConfig, 'id' | 'userId' | 'isAvailable'>): Promise<ConfigTestResponse> => {
+    testConfig: async (configData: Omit<ApiConfig, 'id' | 'userId' | 'isAvailable'>): Promise<CommonResult<TestResult>> => {
         const response = await apiClient.post('/config/test', configData);
         return response.data;
     }

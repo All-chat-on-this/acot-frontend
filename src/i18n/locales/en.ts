@@ -117,6 +117,7 @@ const enTranslation = {
     saving: 'Saving...',
     connection_successful: 'Connection Successful',
     connection_failed: 'Connection Failed',
+    test_response: 'Test Response',
     delete_confirm: 'Are you sure you want to delete "{{name}}"?',
     invalid_json: 'Invalid JSON format. Please check your templates.',
     available: 'Available',

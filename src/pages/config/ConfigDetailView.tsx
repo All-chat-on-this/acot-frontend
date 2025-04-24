@@ -114,6 +114,7 @@ const ConfigDetailView: React.FC<ConfigDetailViewProps> = ({
                     onChange={() => {
                     }}
                     readOnly={true}
+                    isRequestTemplate={true}
                 />
             </ConfigDetail>
 
@@ -124,6 +125,7 @@ const ConfigDetailView: React.FC<ConfigDetailViewProps> = ({
                     onChange={() => {
                     }}
                     readOnly={true}
+                    isRequestTemplate={false}
                 />
             </ConfigDetail>
         </ConfigDetailContent>

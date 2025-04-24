@@ -8,6 +8,7 @@ import {colorTransition, fadeIn} from '@/styles/animations';
 import {ActionButton} from '../ConfigPage';
 import {ApiConfig} from "@/api/type/configApi.ts";
 import {useTranslation} from "react-i18next";
+import {CommonResult} from "@/types";
 
 interface ConfigEditFormProps {
     currentConfig: ApiConfig | null;
@@ -15,6 +16,17 @@ interface ConfigEditFormProps {
     toggleApiKeyVisibility: () => void;
     handleCancelEdit: () => void;
     isLoading: boolean;
+}
+
+export interface TestResult {
+    success: boolean;
+    message: string;
+    response: {
+        role: string;
+        content: string;
+        thinking: string;
+    },
+    error?: string;
 }
 
 const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
@@ -33,6 +45,13 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
     } = useConfigStore();
 
     const {t} = useTranslation();
+
+    // Debug effect to check test result data
+    useEffect(() => {
+        if (testResult) {
+            console.log('Test Result Object:', testResult);
+        }
+    }, [testResult]);
 
     const [formData, setFormData] = useState({
         name: t('new_configuration'),
@@ -133,22 +152,27 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
             '  },\n' +
             '  "system_fingerprint": ""\n' +
             '}',
-        requestMessageGroupPathFromGroup: 'messages',
+        requestMessageGroupPath: 'messages',
         requestRolePathFromGroup: 'role',
         requestTextPathFromGroup: 'content',
         requestUserRoleField: 'user',
         requestAssistantField: 'assistant',
         requestSystemField: 'system',
-        responseTextPath: 'choices[0].message.reasoning_content',
-        responseThinkingTextPath: ''
+        responseTextPath: 'choices[0].message.content',
+        responseThinkingTextPath: 'choices[0].message.reasoning_content'
     });
 
     const [lastApiKeyBodyPath, setLastApiKeyBodyPath] = useState('');
 
     const [paths, setPaths] = useState({
-        roleField: 'choices[0].message.role',
-        contentField: 'choices[0].message.content',
-        thinkingTextField: 'choices[0].message.reasoning_content'
+        requestMessageGroupPath: 'messages',
+        requestRolePathFromGroup: 'role',
+        requestTextPathFromGroup: 'content',
+        requestUserRoleField: 'user',
+        requestAssistantField: 'assistant',
+        requestSystemField: 'system',
+        responseTextPath: 'choices[0].message.content',
+        responseThinkingTextPath: 'choices[0].message.reasoning_content'
     });
 
     useEffect(() => {
@@ -162,7 +186,7 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
                 apiKeyBodyPath: currentConfig.apiKeyBodyPath || '',
                 requestTemplate: JSON.stringify(currentConfig.requestTemplate, null, 2),
                 responseTemplate: JSON.stringify(currentConfig.responseTemplate, null, 2),
-                requestMessageGroupPathFromGroup: currentConfig.requestMessageGroupPathFromGroup || 'messages',
+                requestMessageGroupPath: currentConfig.requestMessageGroupPath || 'messages',
                 requestRolePathFromGroup: currentConfig.requestRolePathFromGroup || 'role',
                 requestTextPathFromGroup: currentConfig.requestTextPathFromGroup || 'content',
                 requestUserRoleField: currentConfig.requestUserRoleField || 'user',
@@ -173,14 +197,17 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
             });
             setLastApiKeyBodyPath(currentConfig.apiKeyBodyPath || '');
 
-            // Extract paths from current config's responseTemplate if it exists
-            if (currentConfig.responseTemplate) {
-                setPaths({
-                    roleField: currentConfig.responseTemplate.roleField || '',
-                    contentField: currentConfig.responseTemplate.contentField || '',
-                    thinkingTextField: currentConfig.responseTemplate.thinkingTextField || ''
-                });
-            }
+            // Extract paths from current config
+            setPaths({
+                requestMessageGroupPath: currentConfig.requestMessageGroupPath || 'messages',
+                requestRolePathFromGroup: currentConfig.requestRolePathFromGroup || 'role',
+                requestTextPathFromGroup: currentConfig.requestTextPathFromGroup || 'content',
+                requestUserRoleField: currentConfig.requestUserRoleField || 'user',
+                requestAssistantField: currentConfig.requestAssistantField || 'assistant',
+                requestSystemField: currentConfig.requestSystemField || 'system',
+                responseTextPath: currentConfig.responseTextPath || 'choices[0].message.content',
+                responseThinkingTextPath: currentConfig.responseThinkingTextPath || 'choices[0].message.reasoning_content'
+            });
         }
     }, [currentConfig, t]);
 
@@ -238,11 +265,27 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
         }
     };
 
+
+    // Function to determine if a test response is successful
+    // This handles both direct success property and nested data.success
+    const isSuccessfulResponse = (result: CommonResult<TestResult>): boolean => {
+        return result?.code === 0 && result?.data?.success === true;
+    };
+
     const handleJsonChange = (field: string, value: string) => {
         setFormData(prev => ({...prev, [field]: value}));
     };
 
-    const handlePathsChange = (newPaths: { roleField: string, contentField: string, thinkingTextField: string }) => {
+    const handlePathsChange = (newPaths: {
+        requestMessageGroupPath: string,
+        requestRolePathFromGroup: string,
+        requestTextPathFromGroup: string,
+        requestUserRoleField: string,
+        requestAssistantField: string,
+        requestSystemField: string,
+        responseTextPath: string,
+        responseThinkingTextPath: string
+    }) => {
         setPaths(newPaths);
     };
 
@@ -252,12 +295,7 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
         try {
             // Parse JSON templates
             let requestTemplate = JSON.parse(formData.requestTemplate);
-            const responseTemplate = {
-                ...JSON.parse(formData.responseTemplate),
-                roleField: paths.roleField,
-                contentField: paths.contentField,
-                thinkingTextField: paths.thinkingTextField
-            };
+            const responseTemplate = JSON.parse(formData.responseTemplate);
 
             // If apiKeyPlacement is 'body', ensure the field exists in requestTemplate
             if (formData.apiKeyPlacement === 'body' && formData.apiKeyBodyPath) {
@@ -279,14 +317,14 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
                 headers: {'Content-Type': 'application/json'},
                 requestTemplate,
                 responseTemplate,
-                requestMessageGroupPathFromGroup: formData.requestMessageGroupPathFromGroup,
-                requestRolePathFromGroup: formData.requestRolePathFromGroup,
-                requestTextPathFromGroup: formData.requestTextPathFromGroup,
-                requestUserRoleField: formData.requestUserRoleField,
-                requestAssistantField: formData.requestAssistantField,
-                requestSystemField: formData.requestSystemField,
-                responseTextPath: formData.responseTextPath,
-                responseThinkingTextPath: formData.responseThinkingTextPath
+                requestMessageGroupPath: paths.requestMessageGroupPath,
+                requestRolePathFromGroup: paths.requestRolePathFromGroup,
+                requestTextPathFromGroup: paths.requestTextPathFromGroup,
+                requestUserRoleField: paths.requestUserRoleField,
+                requestAssistantField: paths.requestAssistantField,
+                requestSystemField: paths.requestSystemField,
+                responseTextPath: paths.responseTextPath,
+                responseThinkingTextPath: paths.responseThinkingTextPath
             };
 
             if (currentConfig) {
@@ -306,12 +344,7 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
         try {
             // Parse JSON templates
             let requestTemplate = JSON.parse(formData.requestTemplate);
-            const responseTemplate = {
-                ...JSON.parse(formData.responseTemplate),
-                roleField: paths.roleField,
-                contentField: paths.contentField,
-                thinkingTextField: paths.thinkingTextField
-            };
+            const responseTemplate = JSON.parse(formData.responseTemplate);
 
             // If apiKeyPlacement is 'body', ensure the field exists in requestTemplate
             if (formData.apiKeyPlacement === 'body' && formData.apiKeyBodyPath) {
@@ -333,14 +366,14 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
                 headers: {'Content-Type': 'application/json'},
                 requestTemplate,
                 responseTemplate,
-                requestMessageGroupPathFromGroup: formData.requestMessageGroupPathFromGroup,
-                requestRolePathFromGroup: formData.requestRolePathFromGroup,
-                requestTextPathFromGroup: formData.requestTextPathFromGroup,
-                requestUserRoleField: formData.requestUserRoleField,
-                requestAssistantField: formData.requestAssistantField,
-                requestSystemField: formData.requestSystemField,
-                responseTextPath: formData.responseTextPath,
-                responseThinkingTextPath: formData.responseThinkingTextPath
+                requestMessageGroupPath: paths.requestMessageGroupPath,
+                requestRolePathFromGroup: paths.requestRolePathFromGroup,
+                requestTextPathFromGroup: paths.requestTextPathFromGroup,
+                requestUserRoleField: paths.requestUserRoleField,
+                requestAssistantField: paths.requestAssistantField,
+                requestSystemField: paths.requestSystemField,
+                responseTextPath: paths.responseTextPath,
+                responseThinkingTextPath: paths.responseThinkingTextPath
             };
 
             await testConfig(configData);
@@ -474,83 +507,7 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
                 )}
             </FormGroup>
 
-            {/* Message Group Configuration Section */}
             <SectionTitle>{t('request_configuration')}</SectionTitle>
-            <FormGroup>
-                <FormLabel htmlFor="requestMessageGroupPathFromGroup">{t('message_group_path')}</FormLabel>
-                <FormInput
-                    id="requestMessageGroupPathFromGroup"
-                    name="requestMessageGroupPathFromGroup"
-                    value={formData.requestMessageGroupPathFromGroup}
-                    onChange={handleChange}
-                    placeholder="messages"
-                    required
-                />
-                <HelperText>{t('message_group_path_helper') || "Path to the message group array in the request (e.g., 'messages')"}</HelperText>
-            </FormGroup>
-
-            <FormGroup>
-                <FormLabel htmlFor="requestRolePathFromGroup">{t('role_path_in_group')}</FormLabel>
-                <FormInput
-                    id="requestRolePathFromGroup"
-                    name="requestRolePathFromGroup"
-                    value={formData.requestRolePathFromGroup}
-                    onChange={handleChange}
-                    placeholder="role"
-                />
-                <HelperText>{t('role_path_helper') || "Property name for role within message group items (e.g., 'role')"}</HelperText>
-            </FormGroup>
-
-            <FormGroup>
-                <FormLabel htmlFor="requestTextPathFromGroup">{t('content_path_in_group')}</FormLabel>
-                <FormInput
-                    id="requestTextPathFromGroup"
-                    name="requestTextPathFromGroup"
-                    value={formData.requestTextPathFromGroup}
-                    onChange={handleChange}
-                    placeholder="content"
-                />
-                <HelperText>{t('content_path_helper') || "Property name for content within message group items (e.g., 'content')"}</HelperText>
-            </FormGroup>
-
-            <FormGroup>
-                <FormLabel htmlFor="requestUserRoleField">{t('user_role')}</FormLabel>
-                <FormInput
-                    id="requestUserRoleField"
-                    name="requestUserRoleField"
-                    value={formData.requestUserRoleField}
-                    onChange={handleChange}
-                    placeholder="user"
-                />
-                <HelperText>{t('user_role_helper') || "Property name for user role within message group items (e.g., 'user')"}</HelperText>
-            </FormGroup>
-
-            <FormGroup>
-                <FormLabel htmlFor="requestAssistantField">{t('assistant_role')}</FormLabel>
-                <FormInput
-                    id="requestAssistantField"
-                    name="requestAssistantField"
-                    value={formData.requestAssistantField}
-                    onChange={handleChange}
-                    placeholder="assistant"
-                />
-                <HelperText>{t('assistant_role_helper') || "Property name for assistant role within message group items (e.g., 'assistant')"}</HelperText>
-            </FormGroup>
-
-            <FormGroup>
-                <FormLabel htmlFor="requestSystemField">{t('system_role')}</FormLabel>
-                <FormInput
-                    id="requestSystemField"
-                    name="requestSystemField"
-                    value={formData.requestSystemField}
-                    onChange={handleChange}
-                    placeholder="system"
-                />
-                <HelperText>{t('system_role_helper') || "Property name for system role within message group items (e.g., 'system')"}</HelperText>
-            </FormGroup>
-
-            <SectionTitle>{t('request_template')}</SectionTitle>
-
             <FormGroup>
                 <JSONEditor
                     value={formData.requestTemplate}
@@ -558,36 +515,15 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
                     height="500px"
                     label={t('request_template_json')}
                     tooltip={t('request_template_tooltip')}
+                    paths={paths}
+                    onPathsChange={handlePathsChange}
+                    isRequestTemplate={true}
                 />
             </FormGroup>
 
             <SectionTitle>{t('response_configuration')}</SectionTitle>
             <HelperText
                 style={{marginBottom: '16px'}}>{t('response_no_message_group') || "The response does not use message groups - paths are for direct extraction from response JSON"}</HelperText>
-
-            <FormGroup>
-                <FormLabel htmlFor="responseTextPath">{t('response_text_path')}</FormLabel>
-                <FormInput
-                    id="responseTextPath"
-                    name="responseTextPath"
-                    value={formData.responseTextPath}
-                    onChange={handleChange}
-                    placeholder="choices[0].message.content"
-                />
-                <HelperText>{t('response_text_path_helper') || "Path to extract response text from API response"}</HelperText>
-            </FormGroup>
-
-            <FormGroup>
-                <FormLabel htmlFor="responseThinkingTextPath">{t('response_thinking_path')}</FormLabel>
-                <FormInput
-                    id="responseThinkingTextPath"
-                    name="responseThinkingTextPath"
-                    value={formData.responseThinkingTextPath}
-                    onChange={handleChange}
-                    placeholder="choices[0].message.reasoning_content"
-                />
-                <HelperText>{t('response_thinking_helper') || "Path to extract thinking text from API response (optional)"}</HelperText>
-            </FormGroup>
 
             <FormGroup>
                 <JSONEditor
@@ -598,6 +534,7 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
                     tooltip={t('response_template_tooltip')}
                     paths={paths}
                     onPathsChange={handlePathsChange}
+                    isRequestTemplate={false}
                 />
             </FormGroup>
 
@@ -653,25 +590,51 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
             <AnimatePresence>
                 {testResult && (
                     <TestResult
-                        className={testResult.success ? 'success' : 'error'}
+                        className={isSuccessfulResponse(testResult) ? 'success' : 'error'}
                         initial={{opacity: 0, y: 10}}
                         animate={{opacity: 1, y: 0}}
                         exit={{opacity: 0, y: 10}}
                         transition={{duration: 0.3}}
                     >
-                        <h4 style={{marginBottom: 0}}>{testResult.success ? t('connection_successful') : t('connection_failed')}</h4>
-                        {testResult.message && <p>{testResult.message}</p>}
-                        {testResult.success && testResult.response && (
-                            <div style={{marginTop: '8px'}}>
-                                <JSONEditor
-                                    value={JSON.stringify(testResult.response, null, 2)}
-                                    onChange={() => {
-                                    }}
-                                    height="250px"
-                                    readOnly={true}
-                                />
-                            </div>
-                        )}
+                        <h4>{isSuccessfulResponse(testResult) ? t('connection_successful') : t('connection_failed')}</h4>
+                        {testResult.data.message && <p>{testResult.data.message}</p>}
+
+                        {/* Show response data or error data in JSON editor */}
+                        <div style={{marginTop: '8px'}}>
+                            {testResult.data.response && (
+                                <>
+                                    <SectionTitle style={{
+                                        marginTop: '12px',
+                                        marginBottom: '4px'
+                                    }}>{t('test_response')}</SectionTitle>
+                                    <JSONEditor
+                                        value={JSON.stringify(testResult.data.response, null, 2)}
+                                        onChange={() => {
+                                        }}
+                                        height="500px"
+                                        readOnly={true}
+                                        isRequestTemplate={false}
+                                    />
+                                </>
+                            )}
+
+                            {!isSuccessfulResponse(testResult) && testResult.data.error && (
+                                <>
+                                    <SectionTitle style={{
+                                        marginTop: '12px',
+                                        marginBottom: '4px'
+                                    }}>{t('error_details')}</SectionTitle>
+                                    <JSONEditor
+                                        value={testResult.data.error.startsWith('{') ? testResult.data.error : JSON.stringify(testResult.data.error, null, 2)}
+                                        onChange={() => {
+                                        }}
+                                        height="500px"
+                                        readOnly={true}
+                                        isRequestTemplate={false}
+                                    />
+                                </>
+                            )}
+                        </div>
                     </TestResult>
                 )}
             </AnimatePresence>

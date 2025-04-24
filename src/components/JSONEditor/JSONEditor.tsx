@@ -16,16 +16,32 @@ interface JSONEditorProps {
     tooltip?: string;
     error?: string;
     paths?: {
-        roleField?: string;
-        contentField?: string;
-        thinkingTextField?: string | null;
+        // Request configuration fields
+        requestMessageGroupPath?: string;
+        requestRolePathFromGroup?: string;
+        requestTextPathFromGroup?: string;
+        requestUserRoleField?: string;
+        requestAssistantField?: string;
+        requestSystemField?: string;
+        // Response configuration fields
+        responseTextPath?: string;
+        responseThinkingTextPath?: string;
     };
     onPathsChange?: (paths: {
-        roleField: string;
-        contentField: string;
-        thinkingTextField: string;
+        // Request configuration fields
+        requestMessageGroupPath: string;
+        requestRolePathFromGroup: string;
+        requestTextPathFromGroup: string;
+        requestUserRoleField: string;
+        requestAssistantField: string;
+        requestSystemField: string;
+        // Response configuration fields
+        responseTextPath: string;
+        responseThinkingTextPath: string;
     }) => void;
     readOnly?: boolean;
+    // To toggle between request/response sections in path editor
+    isRequestTemplate?: boolean;
 }
 
 const JSONEditor: React.FC<JSONEditorProps> = ({
@@ -37,7 +53,8 @@ const JSONEditor: React.FC<JSONEditorProps> = ({
                                                    error,
                                                    paths,
                                                    onPathsChange,
-                                                   readOnly = false
+                                                   readOnly = false,
+                                                   isRequestTemplate
                                                }) => {
     const {t} = useTranslation();
     const {isDark} = useContext(ThemeContext);
@@ -46,9 +63,16 @@ const JSONEditor: React.FC<JSONEditorProps> = ({
     const [isEditing, setIsEditing] = useState(!readOnly);
     const [originalJson, setOriginalJson] = useState(value);
     const [localPaths, setLocalPaths] = useState(paths || {
-        roleField: '',
-        contentField: '',
-        thinkingTextField: null
+        // Default values for request configuration
+        requestMessageGroupPath: 'messages',
+        requestRolePathFromGroup: 'role',
+        requestTextPathFromGroup: 'content',
+        requestUserRoleField: 'user',
+        requestAssistantField: 'assistant',
+        requestSystemField: 'system',
+        // Default values for response configuration
+        responseTextPath: 'choices[0].message.content',
+        responseThinkingTextPath: ''
     });
 
     // Calculate the actual height respecting min and max constraints
@@ -67,7 +91,17 @@ const JSONEditor: React.FC<JSONEditorProps> = ({
 
     useEffect(() => {
         if (paths) {
-            setLocalPaths(paths);
+            // Ensure all fields are present with defaults when updating from props
+            setLocalPaths({
+                requestMessageGroupPath: paths.requestMessageGroupPath || 'messages',
+                requestRolePathFromGroup: paths.requestRolePathFromGroup || 'role',
+                requestTextPathFromGroup: paths.requestTextPathFromGroup || 'content',
+                requestUserRoleField: paths.requestUserRoleField || 'user',
+                requestAssistantField: paths.requestAssistantField || 'assistant',
+                requestSystemField: paths.requestSystemField || 'system',
+                responseTextPath: paths.responseTextPath || 'choices[0].message.content',
+                responseThinkingTextPath: paths.responseThinkingTextPath || ''
+            });
         }
     }, [paths]);
 
@@ -92,7 +126,17 @@ const JSONEditor: React.FC<JSONEditorProps> = ({
         const newPaths = {...localPaths, [field]: value};
         setLocalPaths(newPaths);
         if (onPathsChange) {
-            onPathsChange(newPaths);
+            // Cast the paths to ensure all required fields are present
+            onPathsChange({
+                requestMessageGroupPath: newPaths.requestMessageGroupPath || 'messages',
+                requestRolePathFromGroup: newPaths.requestRolePathFromGroup || 'role',
+                requestTextPathFromGroup: newPaths.requestTextPathFromGroup || 'content',
+                requestUserRoleField: newPaths.requestUserRoleField || 'user',
+                requestAssistantField: newPaths.requestAssistantField || 'assistant',
+                requestSystemField: newPaths.requestSystemField || 'system',
+                responseTextPath: newPaths.responseTextPath || 'choices[0].message.content',
+                responseThinkingTextPath: newPaths.responseThinkingTextPath || ''
+            });
         }
     };
 
@@ -198,44 +242,117 @@ const JSONEditor: React.FC<JSONEditorProps> = ({
                     <>
                         {showPathEditor ? (
                             <PathEditor>
-                                <PathFieldGroup>
-                                    <PathFieldLabel>{t('role_field_path')}:</PathFieldLabel>
-                                    <PathFieldInput
-                                        type="text"
-                                        value={localPaths.roleField || ''}
-                                        onChange={(e) => handlePathChange('roleField', e.target.value)}
-                                        placeholder={t('role_field_placeholder')}
-                                    />
-                                    <PathFieldDescription>
-                                        {t('role_field_description')}
-                                    </PathFieldDescription>
-                                </PathFieldGroup>
+                                {isRequestTemplate ? (
+                                    // Request Template Path Editor
+                                    <>
+                                        <PathFieldGroup>
+                                            <PathFieldLabel>{t('message_group_path')}:</PathFieldLabel>
+                                            <PathFieldInput
+                                                type="text"
+                                                value={localPaths.requestMessageGroupPath || ''}
+                                                onChange={(e) => handlePathChange('requestMessageGroupPath', e.target.value)}
+                                                placeholder="messages"
+                                            />
+                                            <PathFieldDescription>
+                                                {t('message_group_path_helper')}
+                                            </PathFieldDescription>
+                                        </PathFieldGroup>
 
-                                <PathFieldGroup>
-                                    <PathFieldLabel>{t('content_field_path')}:</PathFieldLabel>
-                                    <PathFieldInput
-                                        type="text"
-                                        value={localPaths.contentField || ''}
-                                        onChange={(e) => handlePathChange('contentField', e.target.value)}
-                                        placeholder={t('content_field_placeholder')}
-                                    />
-                                    <PathFieldDescription>
-                                        {t('content_field_description')}
-                                    </PathFieldDescription>
-                                </PathFieldGroup>
+                                        <PathFieldGroup>
+                                            <PathFieldLabel>{t('role_path_in_group')}:</PathFieldLabel>
+                                            <PathFieldInput
+                                                type="text"
+                                                value={localPaths.requestRolePathFromGroup || ''}
+                                                onChange={(e) => handlePathChange('requestRolePathFromGroup', e.target.value)}
+                                                placeholder="role"
+                                            />
+                                            <PathFieldDescription>
+                                                {t('role_path_helper')}
+                                            </PathFieldDescription>
+                                        </PathFieldGroup>
 
-                                <PathFieldGroup>
-                                    <PathFieldLabel>{t('thinking_text_field_path')}:</PathFieldLabel>
-                                    <PathFieldInput
-                                        type="text"
-                                        value={localPaths.thinkingTextField || ''}
-                                        onChange={(e) => handlePathChange('thinkingTextField', e.target.value)}
-                                        placeholder={t('thinking_text_field_placeholder')}
-                                    />
-                                    <PathFieldDescription>
-                                        {t('thinking_text_field_description')}
-                                    </PathFieldDescription>
-                                </PathFieldGroup>
+                                        <PathFieldGroup>
+                                            <PathFieldLabel>{t('content_path_in_group')}:</PathFieldLabel>
+                                            <PathFieldInput
+                                                type="text"
+                                                value={localPaths.requestTextPathFromGroup || ''}
+                                                onChange={(e) => handlePathChange('requestTextPathFromGroup', e.target.value)}
+                                                placeholder="content"
+                                            />
+                                            <PathFieldDescription>
+                                                {t('content_path_helper')}
+                                            </PathFieldDescription>
+                                        </PathFieldGroup>
+
+                                        <PathFieldGroup>
+                                            <PathFieldLabel>{t('user_role')}:</PathFieldLabel>
+                                            <PathFieldInput
+                                                type="text"
+                                                value={localPaths.requestUserRoleField || ''}
+                                                onChange={(e) => handlePathChange('requestUserRoleField', e.target.value)}
+                                                placeholder="user"
+                                            />
+                                            <PathFieldDescription>
+                                                {t('user_role_helper')}
+                                            </PathFieldDescription>
+                                        </PathFieldGroup>
+
+                                        <PathFieldGroup>
+                                            <PathFieldLabel>{t('assistant_role')}:</PathFieldLabel>
+                                            <PathFieldInput
+                                                type="text"
+                                                value={localPaths.requestAssistantField || ''}
+                                                onChange={(e) => handlePathChange('requestAssistantField', e.target.value)}
+                                                placeholder="assistant"
+                                            />
+                                            <PathFieldDescription>
+                                                {t('assistant_role_helper')}
+                                            </PathFieldDescription>
+                                        </PathFieldGroup>
+
+                                        <PathFieldGroup>
+                                            <PathFieldLabel>{t('system_role')}:</PathFieldLabel>
+                                            <PathFieldInput
+                                                type="text"
+                                                value={localPaths.requestSystemField || ''}
+                                                onChange={(e) => handlePathChange('requestSystemField', e.target.value)}
+                                                placeholder="system"
+                                            />
+                                            <PathFieldDescription>
+                                                {t('system_role_helper')}
+                                            </PathFieldDescription>
+                                        </PathFieldGroup>
+                                    </>
+                                ) : (
+                                    // Response Template Path Editor
+                                    <>
+                                        <PathFieldGroup>
+                                            <PathFieldLabel>{t('response_text_path')}:</PathFieldLabel>
+                                            <PathFieldInput
+                                                type="text"
+                                                value={localPaths.responseTextPath || ''}
+                                                onChange={(e) => handlePathChange('responseTextPath', e.target.value)}
+                                                placeholder="choices[0].message.content"
+                                            />
+                                            <PathFieldDescription>
+                                                {t('response_text_path_helper')}
+                                            </PathFieldDescription>
+                                        </PathFieldGroup>
+
+                                        <PathFieldGroup>
+                                            <PathFieldLabel>{t('response_thinking_path')}:</PathFieldLabel>
+                                            <PathFieldInput
+                                                type="text"
+                                                value={localPaths.responseThinkingTextPath || ''}
+                                                onChange={(e) => handlePathChange('responseThinkingTextPath', e.target.value)}
+                                                placeholder="choices[0].message.reasoning_content"
+                                            />
+                                            <PathFieldDescription>
+                                                {t('response_thinking_helper')}
+                                            </PathFieldDescription>
+                                        </PathFieldGroup>
+                                    </>
+                                )}
 
                                 <PathPreview>
                                     <h4>{t('current_configuration')}:</h4>
