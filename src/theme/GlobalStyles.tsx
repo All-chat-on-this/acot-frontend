@@ -1,5 +1,5 @@
-import { createGlobalStyle, css } from 'styled-components';
-import { ThemeProps } from './types';
+import {createGlobalStyle, css} from 'styled-components';
+import {ThemeProps} from './types';
 
 const GlobalStyles = createGlobalStyle<{ theme?: ThemeProps }>`
   * {
@@ -15,15 +15,16 @@ const GlobalStyles = createGlobalStyle<{ theme?: ThemeProps }>`
 
   body {
     margin: 0;
-    font-family: ${({ theme }) => theme?.fontFamily};
-    background: ${({ theme }) => theme?.colors.background};
-    color: ${({ theme }) => theme?.colors.text};
+    font-family: ${({theme}) => theme?.fontFamily};
+    background: ${({theme}) => theme?.colors.background};
+    background-size: cover;
+    color: ${({theme}) => theme?.colors.text};
     overflow-x: hidden;
     transition: background-color 0.3s ease, color 0.3s ease;
     line-height: 1.5;
   }
 
-  ${({ theme }) => theme?.blurAmount && css`
+  ${({theme}) => theme?.blurAmount && css`
     .glass-effect {
       backdrop-filter: blur(${theme.blurAmount});
       -webkit-backdrop-filter: blur(${theme.blurAmount});
@@ -37,24 +38,29 @@ const GlobalStyles = createGlobalStyle<{ theme?: ThemeProps }>`
     }
 
     @keyframes gradient-shift {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+      0% {
+        background-position: 0% 50%;
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+      100% {
+        background-position: 0% 50%;
+      }
     }
   `}
-
-  /* Basic button styling */
+    /* Basic button styling */
   button {
-    background-color: ${({ theme }) => theme?.colors.primary};
-    color: ${({ theme }) => theme?.colors.buttonText};
+    background-color: ${({theme}) => theme?.colors.primary};
+    color: ${({theme}) => theme?.colors.buttonText};
     border: none;
-    border-radius: ${({ theme }) => theme?.borderRadius};
+    border-radius: ${({theme}) => theme?.borderRadius};
     cursor: pointer;
-    font-family: ${({ theme }) => theme?.fontFamily};
+    font-family: ${({theme}) => theme?.fontFamily};
     transition: background-color 0.2s ease;
 
     &:hover {
-      background-color: ${({ theme }) => theme?.colors.hover};
+      background-color: ${({theme}) => theme?.colors.hover};
       opacity: 0.9;
     }
 
@@ -66,27 +72,27 @@ const GlobalStyles = createGlobalStyle<{ theme?: ThemeProps }>`
 
   /* Basic input styling */
   input, textarea {
-    background-color: ${({ theme }) => theme?.colors.input};
-    color: ${({ theme }) => theme?.colors.inputText};
-    border: 1px solid ${({ theme }) => theme?.colors.border};
-    border-radius: ${({ theme }) => theme?.borderRadius};
+    background-color: ${({theme}) => theme?.colors.input};
+    color: ${({theme}) => theme?.colors.inputText};
+    border: 1px solid ${({theme}) => theme?.colors.border};
+    border-radius: ${({theme}) => theme?.borderRadius};
     padding: 8px 12px;
-    font-family: ${({ theme }) => theme?.fontFamily};
+    font-family: ${({theme}) => theme?.fontFamily};
     transition: border-color 0.2s ease;
 
     &:focus {
-      border-color: ${({ theme }) => theme?.colors.primary};
+      border-color: ${({theme}) => theme?.colors.primary};
       outline: none;
     }
   }
 
   /* Links */
   a {
-    color: ${({ theme }) => theme?.colors.primary};
+    color: ${({theme}) => theme?.colors.primary};
     text-decoration: none;
-    
+
     &:hover {
-      color: ${({ theme }) => theme?.colors.primary}cc;
+      color: ${({theme}) => theme?.colors.primary}cc;
       text-decoration: none;
     }
   }
@@ -94,9 +100,9 @@ const GlobalStyles = createGlobalStyle<{ theme?: ThemeProps }>`
   /* Code blocks */
   pre, code {
     font-family: 'Consolas', 'Monaco', 'Menlo', monospace;
-    background-color: ${({ theme }) => 
-      theme?.colors.background === '#FFFFFF' ? '#F5F5F5' : '#2D2D2D'};
-    border-radius: ${({ theme }) => theme?.borderRadius};
+    background-color: ${({theme}) =>
+        theme?.colors.background === '#FFFFFF' ? '#F5F5F5' : '#2D2D2D'};
+    border-radius: ${({theme}) => theme?.borderRadius};
     padding: 2px 4px;
   }
 
@@ -116,12 +122,12 @@ const GlobalStyles = createGlobalStyle<{ theme?: ThemeProps }>`
   }
 
   ::-webkit-scrollbar-thumb {
-    background: ${({ theme }) => theme?.colors.border};
+    background: ${({theme}) => theme?.colors.border};
     border-radius: 4px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: ${({ theme }) => theme?.colors.primary};
+    background: ${({theme}) => theme?.colors.primary};
   }
 `;
 

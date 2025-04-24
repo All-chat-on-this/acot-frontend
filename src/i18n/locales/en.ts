@@ -122,6 +122,29 @@ const enTranslation = {
     available: 'Available',
     unavailable: 'Unavailable',
 
+    // Request Configuration
+    request_configuration: 'Request Configuration',
+    message_group_path: 'Message Group Path',
+    message_group_path_helper: "Path to the message group array in the request (e.g., 'messages')",
+    role_path_in_group: 'Role Field Name',
+    role_path_helper: "Property name for role within message group items (e.g., 'role')",
+    content_path_in_group: 'Content Field Name',
+    content_path_helper: "Property name for content within message group items (e.g., 'content')",
+    user_role: 'User Role Value',
+    user_role_helper: "Value to use for user messages in role field (e.g., 'user')",
+    assistant_role: 'Assistant Role Value',
+    assistant_role_helper: "Value to use for assistant messages in role field (e.g., 'assistant')",
+    system_role: 'System Role Value',
+    system_role_helper: "Value to use for system messages in role field (e.g., 'system')",
+
+    // Response Configuration
+    response_configuration: 'Response Configuration',
+    response_no_message_group: "The response does not use message groups - paths are for direct extraction from response JSON",
+    response_text_path: 'Response Text Path',
+    response_text_path_helper: "JSON path to extract the main response text (e.g., 'choices[0].message.content')",
+    response_thinking_path: 'Response Thinking Path',
+    response_thinking_helper: "JSON path to extract thinking/reasoning text (e.g., 'choices[0].message.reasoning_content')",
+
     // JSON Editor
     format: 'Format',
     path_editor: 'Path Editor',
@@ -130,7 +153,7 @@ const enTranslation = {
     thinking_text_field_path: 'Thinking Text Field Path',
     role_field_placeholder: 'e.g., choices[0].message.role',
     content_field_placeholder: 'e.g., choices[0].message.content',
-    thinking_text_field_placeholder: 'e.g., choices[0].thinking_text',
+    thinking_text_field_placeholder: 'e.g., choices[0].message.reasoning_content',
     role_field_description: 'The JSON path to extract the role from API response',
     content_field_description: 'The JSON path to extract the message content from API response',
     thinking_text_field_description: 'Optional: The JSON path to extract AI\'s thinking process (chain of thought)',

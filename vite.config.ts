@@ -26,6 +26,8 @@ export default defineConfig(({mode}) => {
         define: {
             __APP_ENV__: JSON.stringify(env.VITE_ENV)
         },
-        sourceMap: true,
+        build: {
+            sourcemap: true
+        }
     }
 })

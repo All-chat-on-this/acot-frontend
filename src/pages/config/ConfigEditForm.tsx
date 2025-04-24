@@ -6,14 +6,15 @@ import JSONEditor from '@/components/JSONEditor/JSONEditor';
 import useConfigStore from '@/store/configStore';
 import {colorTransition, fadeIn} from '@/styles/animations';
 import {ActionButton} from '../ConfigPage';
+import {ApiConfig} from "@/api/type/configApi.ts";
+import {useTranslation} from "react-i18next";
 
 interface ConfigEditFormProps {
-    currentConfig: any;
+    currentConfig: ApiConfig | null;
     showApiKey: boolean;
     toggleApiKeyVisibility: () => void;
     handleCancelEdit: () => void;
     isLoading: boolean;
-    t: any; // Translation function
 }
 
 const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
@@ -22,7 +23,6 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
                                                            toggleApiKeyVisibility,
                                                            handleCancelEdit,
                                                            isLoading,
-                                                           t
                                                        }) => {
     const {
         createConfig,
@@ -32,15 +32,115 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
         error
     } = useConfigStore();
 
+    const {t} = useTranslation();
+
     const [formData, setFormData] = useState({
-        name: '',
-        apiUrl: '',
+        name: t('new_configuration'),
+        apiUrl: 'https://api.siliconflow.cn/v1/chat/completions',
         apiKey: '',
         apiKeyPlacement: 'header' as 'header' | 'body' | 'custom_header',
         apiKeyHeader: '',
         apiKeyBodyPath: '',
-        requestTemplate: '{\n  "model": "gpt-3.5-turbo",\n  "messages": [\n    { "role": "system", "content": "You are a helpful assistant." }\n  ]\n}',
-        responseTemplate: '{\n  "roleField": "choices[0].message.role",\n  "contentField": "choices[0].message.content",\n  "thinkingTextField": null\n}'
+        requestTemplate: '{\n' +
+            '  "model": "Qwen/QwQ-32B",\n' +
+            '  "messages": [\n' +
+            '    {\n' +
+            '      "role": "user",\n' +
+            '      "content": "What opportunities and challenges will the Chinese large - model industry face in 2025?"\n' +
+            '    }\n' +
+            '  ],\n' +
+            '  "stream": false,\n' +
+            '  "max_tokens": 512,\n' +
+            '  "stop": null,\n' +
+            '  "temperature": 0.7,\n' +
+            '  "top_p": 0.7,\n' +
+            '  "top_k": 50,\n' +
+            '  "frequency_penalty": 0.5,\n' +
+            '  "n": 1,\n' +
+            '  "response_format": {\n' +
+            '    "type": "text"\n' +
+            '  },\n' +
+            '  "tools": [\n' +
+            '    {\n' +
+            '      "type": "function",\n' +
+            '      "function": {\n' +
+            '        "description": "",\n' +
+            '        "name": "",\n' +
+            '        "parameters": {},\n' +
+            '        "strict": false\n' +
+            '      }\n' +
+            '    }\n' +
+            '  ]\n' +
+            '}',
+        responseTemplate: '{\n' +
+            '  "id": "0196685afb2ec3f4cdf59e1c6dd30c30",\n' +
+            '  "object": "chat.completion",\n' +
+            '  "created": 1745507515,\n' +
+            '  "model": "Qwen/QwQ-32B",\n' +
+            '  "choices": [\n' +
+            '    {\n' +
+            '      "index": 0,\n' +
+            '      "message": {\n' +
+            '        "role": "assistant",\n' +
+            '        "content": "",\n' +
+            '        "reasoning_content": "Hello, how can I help you?",\n' +
+            '        "tool_calls": [\n' +
+            '          {\n' +
+            '            "id": "0196685bae420c91f60bba4d49081175",\n' +
+            '            "type": "function",\n' +
+            '            "function": {\n' +
+            '              "name": "get_market_growth",\n' +
+            '              "arguments": {\n' +
+            '                "country": "China",\n' +
+            '                "year": 2025\n' +
+            '              }\n' +
+            '            }\n' +
+            '          },\n' +
+            '          {\n' +
+            '            "id": "0196685bae429847f23572c959e56aa9",\n' +
+            '            "type": "function",\n' +
+            '            "function": {\n' +
+            '              "name": "get_policy_updates",\n' +
+            '              "arguments": {\n' +
+            '                "country": "China",\n' +
+            '                "year": 2025\n' +
+            '              }\n' +
+            '            }\n' +
+            '          },\n' +
+            '          {\n' +
+            '            "id": "0196685bae426f48b38445995961a914",\n' +
+            '            "type": "function",\n' +
+            '            "function": {\n' +
+            '              "name": "get_technical_challenges",\n' +
+            '              "arguments": {\n' +
+            '                "country": "China",\n' +
+            '                "year": 2025\n' +
+            '              }\n' +
+            '            }\n' +
+            '          }\n' +
+            '        ]\n' +
+            '      },\n' +
+            '      "finish_reason": "tool_calls"\n' +
+            '    }\n' +
+            '  ],\n' +
+            '  "usage": {\n' +
+            '    "prompt_tokens": 141,\n' +
+            '    "completion_tokens": 774,\n' +
+            '    "total_tokens": 915,\n' +
+            '    "completion_tokens_details": {\n' +
+            '      "reasoning_tokens": 681\n' +
+            '    }\n' +
+            '  },\n' +
+            '  "system_fingerprint": ""\n' +
+            '}',
+        requestMessageGroupPathFromGroup: 'messages',
+        requestRolePathFromGroup: 'role',
+        requestTextPathFromGroup: 'content',
+        requestUserRoleField: 'user',
+        requestAssistantField: 'assistant',
+        requestSystemField: 'system',
+        responseTextPath: 'choices[0].message.reasoning_content',
+        responseThinkingTextPath: ''
     });
 
     const [lastApiKeyBodyPath, setLastApiKeyBodyPath] = useState('');
@@ -48,7 +148,7 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
     const [paths, setPaths] = useState({
         roleField: 'choices[0].message.role',
         contentField: 'choices[0].message.content',
-        thinkingTextField: null as string | null
+        thinkingTextField: 'choices[0].message.reasoning_content'
     });
 
     useEffect(() => {
@@ -57,11 +157,19 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
                 name: currentConfig.name,
                 apiUrl: currentConfig.apiUrl,
                 apiKey: currentConfig.apiKey,
-                apiKeyPlacement: currentConfig.apiKeyPlacement || 'header',
+                apiKeyPlacement: currentConfig.apiKeyPlacement as 'header' | 'body' | 'custom_header' || 'header',
                 apiKeyHeader: currentConfig.apiKeyHeader || '',
                 apiKeyBodyPath: currentConfig.apiKeyBodyPath || '',
                 requestTemplate: JSON.stringify(currentConfig.requestTemplate, null, 2),
-                responseTemplate: JSON.stringify(currentConfig.responseTemplate, null, 2)
+                responseTemplate: JSON.stringify(currentConfig.responseTemplate, null, 2),
+                requestMessageGroupPathFromGroup: currentConfig.requestMessageGroupPathFromGroup || 'messages',
+                requestRolePathFromGroup: currentConfig.requestRolePathFromGroup || 'role',
+                requestTextPathFromGroup: currentConfig.requestTextPathFromGroup || 'content',
+                requestUserRoleField: currentConfig.requestUserRoleField || 'user',
+                requestAssistantField: currentConfig.requestAssistantField || 'assistant',
+                requestSystemField: currentConfig.requestSystemField || 'system',
+                responseTextPath: currentConfig.responseTextPath || 'choices[0].message.content',
+                responseThinkingTextPath: currentConfig.responseThinkingTextPath || 'choices[0].message.reasoning_content'
             });
             setLastApiKeyBodyPath(currentConfig.apiKeyBodyPath || '');
 
@@ -70,28 +178,9 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
                 setPaths({
                     roleField: currentConfig.responseTemplate.roleField || '',
                     contentField: currentConfig.responseTemplate.contentField || '',
-                    thinkingTextField: currentConfig.responseTemplate.thinkingTextField || null
+                    thinkingTextField: currentConfig.responseTemplate.thinkingTextField || ''
                 });
             }
-        } else {
-            // Set default values for new configuration
-            setFormData({
-                name: t('new_configuration'),
-                apiUrl: 'https://api.example.com/chat/completions',
-                apiKey: '',
-                apiKeyPlacement: 'header',
-                apiKeyHeader: '',
-                apiKeyBodyPath: '',
-                requestTemplate: '{\n  "model": "gpt-3.5-turbo",\n  "messages": [\n    { "role": "system", "content": "You are a helpful assistant." }\n  ]\n}',
-                responseTemplate: '{\n  "roleField": "choices[0].message.role",\n  "contentField": "choices[0].message.content",\n  "thinkingTextField": null\n}'
-            });
-            setLastApiKeyBodyPath('');
-
-            setPaths({
-                roleField: 'choices[0].message.role',
-                contentField: 'choices[0].message.content',
-                thinkingTextField: null as string | null
-            });
         }
     }, [currentConfig, t]);
 
@@ -153,7 +242,7 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
         setFormData(prev => ({...prev, [field]: value}));
     };
 
-    const handlePathsChange = (newPaths: any) => {
+    const handlePathsChange = (newPaths: { roleField: string, contentField: string, thinkingTextField: string }) => {
         setPaths(newPaths);
     };
 
@@ -189,7 +278,15 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
                 apiKeyBodyPath: formData.apiKeyPlacement === 'body' ? formData.apiKeyBodyPath : undefined,
                 headers: {'Content-Type': 'application/json'},
                 requestTemplate,
-                responseTemplate
+                responseTemplate,
+                requestMessageGroupPathFromGroup: formData.requestMessageGroupPathFromGroup,
+                requestRolePathFromGroup: formData.requestRolePathFromGroup,
+                requestTextPathFromGroup: formData.requestTextPathFromGroup,
+                requestUserRoleField: formData.requestUserRoleField,
+                requestAssistantField: formData.requestAssistantField,
+                requestSystemField: formData.requestSystemField,
+                responseTextPath: formData.responseTextPath,
+                responseThinkingTextPath: formData.responseThinkingTextPath
             };
 
             if (currentConfig) {
@@ -235,7 +332,15 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
                 apiKeyBodyPath: formData.apiKeyPlacement === 'body' ? formData.apiKeyBodyPath : undefined,
                 headers: {'Content-Type': 'application/json'},
                 requestTemplate,
-                responseTemplate
+                responseTemplate,
+                requestMessageGroupPathFromGroup: formData.requestMessageGroupPathFromGroup,
+                requestRolePathFromGroup: formData.requestRolePathFromGroup,
+                requestTextPathFromGroup: formData.requestTextPathFromGroup,
+                requestUserRoleField: formData.requestUserRoleField,
+                requestAssistantField: formData.requestAssistantField,
+                requestSystemField: formData.requestSystemField,
+                responseTextPath: formData.responseTextPath,
+                responseThinkingTextPath: formData.responseThinkingTextPath
             };
 
             await testConfig(configData);
@@ -362,46 +467,133 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
                             onChange={handleChange}
                             placeholder="api_key"
                             required
+                            onBlur={handleApiKeyBodyPathChange}
                         />
-                        <HelperText>
-                            {t('body_path_helper')}
-                        </HelperText>
-
-                        {formData.apiKeyBodyPath && (
-                            <>
-                                <HelperText style={{marginTop: '12px', fontWeight: 'bold'}}>
-                                    {t('api_key_body_note')}
-                                </HelperText>
-                                <HelperText style={{
-                                    backgroundColor: 'rgba(0,0,0,0.1)',
-                                    padding: '6px 8px',
-                                    borderRadius: '4px',
-                                    fontFamily: 'monospace',
-                                    marginTop: '4px'
-                                }}>
-                                    {`'${formData.apiKeyBodyPath}': ${'*'.repeat(formData.apiKey.length)}`}
-                                </HelperText>
-                            </>
-                        )}
+                        <HelperText>{t('body_path_helper')}</HelperText>
                     </FormSubGroup>
                 )}
             </FormGroup>
+
+            {/* Message Group Configuration Section */}
+            <SectionTitle>{t('request_configuration')}</SectionTitle>
+            <FormGroup>
+                <FormLabel htmlFor="requestMessageGroupPathFromGroup">{t('message_group_path')}</FormLabel>
+                <FormInput
+                    id="requestMessageGroupPathFromGroup"
+                    name="requestMessageGroupPathFromGroup"
+                    value={formData.requestMessageGroupPathFromGroup}
+                    onChange={handleChange}
+                    placeholder="messages"
+                    required
+                />
+                <HelperText>{t('message_group_path_helper') || "Path to the message group array in the request (e.g., 'messages')"}</HelperText>
+            </FormGroup>
+
+            <FormGroup>
+                <FormLabel htmlFor="requestRolePathFromGroup">{t('role_path_in_group')}</FormLabel>
+                <FormInput
+                    id="requestRolePathFromGroup"
+                    name="requestRolePathFromGroup"
+                    value={formData.requestRolePathFromGroup}
+                    onChange={handleChange}
+                    placeholder="role"
+                />
+                <HelperText>{t('role_path_helper') || "Property name for role within message group items (e.g., 'role')"}</HelperText>
+            </FormGroup>
+
+            <FormGroup>
+                <FormLabel htmlFor="requestTextPathFromGroup">{t('content_path_in_group')}</FormLabel>
+                <FormInput
+                    id="requestTextPathFromGroup"
+                    name="requestTextPathFromGroup"
+                    value={formData.requestTextPathFromGroup}
+                    onChange={handleChange}
+                    placeholder="content"
+                />
+                <HelperText>{t('content_path_helper') || "Property name for content within message group items (e.g., 'content')"}</HelperText>
+            </FormGroup>
+
+            <FormGroup>
+                <FormLabel htmlFor="requestUserRoleField">{t('user_role')}</FormLabel>
+                <FormInput
+                    id="requestUserRoleField"
+                    name="requestUserRoleField"
+                    value={formData.requestUserRoleField}
+                    onChange={handleChange}
+                    placeholder="user"
+                />
+                <HelperText>{t('user_role_helper') || "Property name for user role within message group items (e.g., 'user')"}</HelperText>
+            </FormGroup>
+
+            <FormGroup>
+                <FormLabel htmlFor="requestAssistantField">{t('assistant_role')}</FormLabel>
+                <FormInput
+                    id="requestAssistantField"
+                    name="requestAssistantField"
+                    value={formData.requestAssistantField}
+                    onChange={handleChange}
+                    placeholder="assistant"
+                />
+                <HelperText>{t('assistant_role_helper') || "Property name for assistant role within message group items (e.g., 'assistant')"}</HelperText>
+            </FormGroup>
+
+            <FormGroup>
+                <FormLabel htmlFor="requestSystemField">{t('system_role')}</FormLabel>
+                <FormInput
+                    id="requestSystemField"
+                    name="requestSystemField"
+                    value={formData.requestSystemField}
+                    onChange={handleChange}
+                    placeholder="system"
+                />
+                <HelperText>{t('system_role_helper') || "Property name for system role within message group items (e.g., 'system')"}</HelperText>
+            </FormGroup>
+
+            <SectionTitle>{t('request_template')}</SectionTitle>
 
             <FormGroup>
                 <JSONEditor
                     value={formData.requestTemplate}
                     onChange={(value) => handleJsonChange('requestTemplate', value)}
-                    height="200px"
+                    height="500px"
                     label={t('request_template_json')}
                     tooltip={t('request_template_tooltip')}
                 />
+            </FormGroup>
+
+            <SectionTitle>{t('response_configuration')}</SectionTitle>
+            <HelperText
+                style={{marginBottom: '16px'}}>{t('response_no_message_group') || "The response does not use message groups - paths are for direct extraction from response JSON"}</HelperText>
+
+            <FormGroup>
+                <FormLabel htmlFor="responseTextPath">{t('response_text_path')}</FormLabel>
+                <FormInput
+                    id="responseTextPath"
+                    name="responseTextPath"
+                    value={formData.responseTextPath}
+                    onChange={handleChange}
+                    placeholder="choices[0].message.content"
+                />
+                <HelperText>{t('response_text_path_helper') || "Path to extract response text from API response"}</HelperText>
+            </FormGroup>
+
+            <FormGroup>
+                <FormLabel htmlFor="responseThinkingTextPath">{t('response_thinking_path')}</FormLabel>
+                <FormInput
+                    id="responseThinkingTextPath"
+                    name="responseThinkingTextPath"
+                    value={formData.responseThinkingTextPath}
+                    onChange={handleChange}
+                    placeholder="choices[0].message.reasoning_content"
+                />
+                <HelperText>{t('response_thinking_helper') || "Path to extract thinking text from API response (optional)"}</HelperText>
             </FormGroup>
 
             <FormGroup>
                 <JSONEditor
                     value={formData.responseTemplate}
                     onChange={(value) => handleJsonChange('responseTemplate', value)}
-                    height="150px"
+                    height="500px"
                     label={t('response_template_json')}
                     tooltip={t('response_template_tooltip')}
                     paths={paths}
@@ -467,8 +659,8 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
                         exit={{opacity: 0, y: 10}}
                         transition={{duration: 0.3}}
                     >
-                        <h4>{testResult.success ? t('connection_successful') : t('connection_failed')}</h4>
-                        <p>{testResult.message}</p>
+                        <h4 style={{marginBottom: 0}}>{testResult.success ? t('connection_successful') : t('connection_failed')}</h4>
+                        {testResult.message && <p>{testResult.message}</p>}
                         {testResult.success && testResult.response && (
                             <div style={{marginTop: '8px'}}>
                                 <JSONEditor
@@ -671,6 +863,13 @@ const TestButton = styled(motion.button)`
         opacity: 0.5;
         cursor: not-allowed;
     }
+`;
+
+const SectionTitle = styled.h4`
+    margin-top: 24px;
+    margin-bottom: 12px;
+    font-size: 1.1rem;
+    color: ${({theme}) => theme.colors.primary};
 `;
 
 export default ConfigEditForm; 

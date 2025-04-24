@@ -6,13 +6,14 @@ import JSONEditor from '@/components/JSONEditor/JSONEditor';
 import {fadeIn} from '@/styles/animations';
 import useConfigStore from '@/store/configStore';
 import {ActionButton} from '../ConfigPage';
+import {useTranslation} from "react-i18next";
+import {ApiConfig} from "@/api/type/configApi.ts";
 
 interface ConfigDetailViewProps {
-    currentConfig: any;
+    currentConfig: ApiConfig;
     showApiKey: boolean;
     toggleApiKeyVisibility: () => void;
     handleEditConfig: () => void;
-    t: any; // Translation function
 }
 
 const ConfigDetailView: React.FC<ConfigDetailViewProps> = ({
@@ -20,9 +21,9 @@ const ConfigDetailView: React.FC<ConfigDetailViewProps> = ({
                                                                showApiKey,
                                                                toggleApiKeyVisibility,
                                                                handleEditConfig,
-                                                               t
                                                            }) => {
     const {deleteConfig} = useConfigStore();
+    const {t} = useTranslation();
 
     // Add fallback translations for new keys
     const available = t('available', 'Available');
@@ -213,7 +214,7 @@ const AvailabilityStatus = styled.div<{ available: boolean }>`
     border-radius: 20px;
     font-size: 0.8rem;
     font-weight: 500;
-    margin-top: 10px;
+    margin-bottom: 10px;
     background-color: ${props => props.available ? 'rgba(76, 175, 80, 0.1)' : 'rgba(244, 67, 54, 0.1)'};
     color: ${props => props.available ? '#4caf50' : '#f44336'};
 

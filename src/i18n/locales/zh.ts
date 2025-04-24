@@ -122,6 +122,29 @@ const zhTranslation = {
     available: '可用',
     unavailable: '不可用',
 
+    // Request Configuration
+    request_configuration: '请求配置',
+    message_group_path: '消息组路径',
+    message_group_path_helper: "请求中消息组数组的路径（例如，'messages'）",
+    role_path_in_group: '角色字段名称',
+    role_path_helper: "消息组中角色属性的名称（例如，'role'）",
+    content_path_in_group: '内容字段名称',
+    content_path_helper: "消息组中内容属性的名称（例如，'content'）",
+    user_role: '用户角色值',
+    user_role_helper: "角色字段中用户消息的值（例如，'user'）",
+    assistant_role: '助手角色值',
+    assistant_role_helper: "角色字段中助手消息的值（例如，'assistant'）",
+    system_role: '系统角色值',
+    system_role_helper: "角色字段中系统消息的值（例如，'system'）",
+
+    // Response Configuration
+    response_configuration: '响应配置',
+    response_no_message_group: "响应不使用消息组 - 路径用于直接从响应JSON中提取",
+    response_text_path: '响应文本路径',
+    response_text_path_helper: "用于提取主要响应文本的JSON路径（例如，'choices[0].message.content'）",
+    response_thinking_path: '响应思考路径',
+    response_thinking_helper: "用于提取思考/推理文本的JSON路径（例如，'choices[0].message.reasoning_content'）",
+
     // JSON Editor
     format: '格式化',
     path_editor: '路径编辑器',
@@ -130,7 +153,7 @@ const zhTranslation = {
     thinking_text_field_path: '思考文本字段路径',
     role_field_placeholder: '例如：choices[0].message.role',
     content_field_placeholder: '例如：choices[0].message.content',
-    thinking_text_field_placeholder: '例如：choices[0].thinking_text',
+    thinking_text_field_placeholder: '例如：choices[0].message.reasoning_content',
     role_field_description: '从API响应中提取角色的JSON路径',
     content_field_description: '从API响应中提取消息内容的JSON路径',
     thinking_text_field_description: '可选：从API响应中提取AI思考过程（思维链）的JSON路径',

@@ -139,7 +139,6 @@ const ConfigPage: React.FC = () => {
                                     showApiKey={showApiKey}
                                     toggleApiKeyVisibility={toggleApiKeyVisibility}
                                     handleEditConfig={handleEditConfig}
-                                    t={t}
                                 />
                             ) : editMode ? (
                                 <ConfigEditForm
@@ -148,7 +147,6 @@ const ConfigPage: React.FC = () => {
                                     toggleApiKeyVisibility={toggleApiKeyVisibility}
                                     handleCancelEdit={handleCancelEdit}
                                     isLoading={isLoading}
-                                    t={t}
                                 />
                             ) : (
                                 <EmptyState

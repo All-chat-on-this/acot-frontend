@@ -46,8 +46,6 @@ const ViewerContainer = styled.div`
     border-radius: ${({theme}) => theme.borderRadius};
     overflow: auto;
     animation: ${fadeIn} 0.3s ease;
-    min-height: 45px;
-    max-height: 500px;
 
     pre {
         margin: 0;

@@ -20,7 +20,11 @@ interface JSONEditorProps {
         contentField?: string;
         thinkingTextField?: string | null;
     };
-    onPathsChange?: (paths: object) => void;
+    onPathsChange?: (paths: {
+        roleField: string;
+        contentField: string;
+        thinkingTextField: string;
+    }) => void;
     readOnly?: boolean;
 }
 
@@ -189,7 +193,7 @@ const JSONEditor: React.FC<JSONEditorProps> = ({
                 </EditorLabel>
             )}
 
-            <EditorWrapper isError={!!error}>
+            <EditorWrapper iserror={!!error}>
                 {isEditing ? (
                     <>
                         {showPathEditor ? (
@@ -344,18 +348,9 @@ const TooltipText = styled.div`
     pointer-events: none;
 `;
 
-const EditorWrapper = styled.div<{ isError: boolean }>`
-    border: 1px solid ${({isError, theme}) => isError ? '#e53935' : theme.colors.border};
-    border-radius: ${({theme}) => theme.borderRadius};
+const EditorWrapper = styled.div<{ iserror: boolean }>`
     overflow: hidden;
     transition: ${colorTransition};
-    min-height: 45px;
-    max-height: 500px;
-
-    &:focus-within {
-        border-color: ${({theme}) => theme.colors.primary};
-        box-shadow: 0 0 0 2px ${({theme}) => theme.colors.primary}30;
-    }
 `;
 
 const EditorActions = styled.div`

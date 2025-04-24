@@ -113,11 +113,11 @@ const Sidebar: React.FC<SidebarProps> = ({isMobileOpen, onMobileClose}) => {
 
             if (resetList) {
                 setConversations(newConversations);
+                setHasMore(result.total > newConversations.length);
             } else {
                 setConversations([...conversations, ...newConversations]);
+                setHasMore(result.total > conversations.length + newConversations.length);
             }
-
-            setHasMore(result.total > (resetList ? newConversations.length : conversations.length + newConversations.length));
             setCurrentPage(page);
         } catch (error) {
             console.error('Failed to load conversations:', error);
