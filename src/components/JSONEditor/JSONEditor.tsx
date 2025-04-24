@@ -1,6 +1,6 @@
 import React, {useContext, useEffect, useState} from 'react';
 import styled from 'styled-components';
-import Editor, {OnChange, OnMount} from '@monaco-editor/react';
+import Editor, {BeforeMount, OnChange, OnMount} from '@monaco-editor/react';
 import {FaCode, FaCog, FaEdit, FaInfoCircle} from 'react-icons/fa';
 import {motion} from 'framer-motion';
 import {colorTransition, fadeIn} from '@/styles/animations';
@@ -62,6 +62,7 @@ const JSONEditor: React.FC<JSONEditorProps> = ({
     const [showPathEditor, setShowPathEditor] = useState(false);
     const [isEditing, setIsEditing] = useState(!readOnly);
     const [originalJson, setOriginalJson] = useState(value);
+    const [editorError, setEditorError] = useState<string | null>(null);
     const [localPaths, setLocalPaths] = useState(paths || {
         // Default values for request configuration
         requestMessageGroupPath: 'messages',
@@ -122,6 +123,11 @@ const JSONEditor: React.FC<JSONEditorProps> = ({
         });
     };
 
+    const handleBeforeMount: BeforeMount = () => {
+        // Reset any previous errors when we attempt to mount again
+        setEditorError(null);
+    };
+
     const handlePathChange = (field: string, value: string) => {
         const newPaths = {...localPaths, [field]: value};
         setLocalPaths(newPaths);
@@ -156,6 +162,19 @@ const JSONEditor: React.FC<JSONEditorProps> = ({
         setOriginalJson(value);
         setIsEditing(true);
     };
+
+    // Fallback editor component when Monaco fails to load
+    const FallbackEditor = () => (
+        <FallbackTextarea
+            value={editorValue}
+            onChange={(e) => {
+                const newValue = e.target.value;
+                setEditorValue(newValue);
+                onChange(newValue);
+            }}
+            style={{height: calculatedHeight()}}
+        />
+    );
 
     return (
         <EditorContainer>
@@ -367,31 +386,44 @@ const JSONEditor: React.FC<JSONEditorProps> = ({
                                         <JSONViewer value={originalJson}/>
                                     </ReferenceJsonContainer>
                                 )}
-                                <Editor
-                                    height={calculatedHeight()}
-                                    defaultLanguage="json"
-                                    value={editorValue}
-                                    onChange={handleEditorChange}
-                                    onMount={handleEditorMount}
-                                    theme={isDark ? 'vs-dark' : 'light'}
-                                    options={{
-                                        minimap: {enabled: false},
-                                        scrollBeyondLastLine: false,
-                                        automaticLayout: true,
-                                        wordWrap: 'on',
-                                        tabSize: 2,
-                                        formatOnPaste: true,
-                                        fontFamily: "'Fira Code', 'Consolas', monospace",
-                                        fontSize: 13,
-                                        scrollbar: {
-                                            useShadows: false,
-                                            verticalScrollbarSize: 12,
-                                            horizontalScrollbarSize: 12,
-                                            vertical: 'auto',
-                                            horizontal: 'auto',
-                                        }
-                                    }}
-                                />
+                                {editorError ? (
+                                    <FallbackContainer>
+                                        <ErrorMessage>
+                                            {t('monaco_initialization_error', 'Monaco editor failed to initialize')}: {editorError}
+                                        </ErrorMessage>
+                                        <p>{t('fallback_editor_message', 'Using simple text editor as fallback')}</p>
+                                        <FallbackEditor/>
+                                    </FallbackContainer>
+                                ) : (
+                                    /* Using an object to pass props to avoid TypeScript issues */
+                                    <Editor
+                                        height={calculatedHeight()}
+                                        defaultLanguage="json"
+                                        value={editorValue}
+                                        onChange={handleEditorChange}
+                                        onMount={handleEditorMount}
+                                        beforeMount={handleBeforeMount}
+                                        theme={isDark ? 'vs-dark' : 'light'}
+                                        loading={<div>{t('loading_editor', 'Loading editor')}...</div>}
+                                        options={{
+                                            minimap: {enabled: false},
+                                            scrollBeyondLastLine: false,
+                                            automaticLayout: true,
+                                            wordWrap: 'on',
+                                            tabSize: 2,
+                                            formatOnPaste: true,
+                                            fontFamily: "'Fira Code', 'Consolas', monospace",
+                                            fontSize: 13,
+                                            scrollbar: {
+                                                useShadows: false,
+                                                verticalScrollbarSize: 12,
+                                                horizontalScrollbarSize: 12,
+                                                vertical: 'auto',
+                                                horizontal: 'auto',
+                                            }
+                                        }}
+                                    />
+                                )}
                             </EditorContainer>
                         )}
                     </>
@@ -575,6 +607,27 @@ const ReferenceHeader = styled.div`
     font-size: 0.85rem;
     font-weight: 600;
     border-bottom: 1px solid ${({theme}) => theme.colors.border};
+`;
+
+const FallbackTextarea = styled.textarea`
+    width: 100%;
+    min-height: 200px;
+    padding: 12px;
+    font-family: 'Fira Code', 'Consolas', monospace;
+    font-size: 13px;
+    color: ${({theme}) => theme.colors.text};
+    background-color: ${({theme}) => theme.colors.background};
+    border: 1px solid ${({theme}) => theme.colors.border};
+    border-radius: ${({theme}) => theme.borderRadius};
+    resize: vertical;
+`;
+
+const FallbackContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 0;
 `;
 
 export default JSONEditor; 

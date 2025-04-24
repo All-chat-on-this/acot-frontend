@@ -14,7 +14,7 @@
     "preview:prod": "vite preview --mode production"
   },
   "dependencies": {
-    "@monaco-editor/react": "^4.6.0",
+    "@monaco-editor/react": "^4.7.0",
     "axios": "^1.6.8",
     "framer-motion": "^11.0.8",
     "highlight.js": "^11.9.0",

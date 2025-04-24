@@ -19,7 +19,9 @@ const themes: ThemeDefinition = {
             assistantBubbleText: '#333333',
             systemBubbleText: '#333333',
             hover: '#E6F7FF',
-            dialogBackground: '#FFFFFF'
+            dialogBackground: '#FFFFFF',
+            success: '#2e7d32',
+            error: '#d33'
         },
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif',
         borderRadius: '8px'
@@ -43,7 +45,9 @@ const themes: ThemeDefinition = {
             assistantBubbleText: '#E0E0E0',
             systemBubbleText: '#E0E0E0',
             hover: '#003A8C',
-            dialogBackground: '#2D2D2D'
+            dialogBackground: '#2D2D2D',
+            success: '#4caf50',
+            error: '#f44336'
         },
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif',
         borderRadius: '8px'
@@ -67,7 +71,9 @@ const themes: ThemeDefinition = {
             assistantBubbleText: '#333333',
             systemBubbleText: '#333333',
             hover: 'rgb(44,154,255)',
-            dialogBackground: 'rgba(255, 255, 255, 1)'
+            dialogBackground: 'rgba(255, 255, 255, 1)',
+            success: '#2e7d32',
+            error: '#d33'
         },
         blurAmount: '15px',
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif',
@@ -77,7 +83,7 @@ const themes: ThemeDefinition = {
     dreamlikeColorDark: {
         colors: {
             primary: '#3DACFF',
-            background: 'linear-gradient(120deg, rgba(50, 25, 79, 0.8), rgba(20, 30, 90, 0.8)) no-repeat center center',
+            background: 'linear-gradient(120deg, rgba(50, 25, 79, 0.8), rgba(20, 30, 90, 0.8)) no-repeat center center fixed',
             text: '#E0E0E0',
             border: 'rgba(255, 255, 255, 0.08)',
             buttonText: '#FFFFFF',
@@ -92,7 +98,9 @@ const themes: ThemeDefinition = {
             assistantBubbleText: '#E0E0E0',
             systemBubbleText: '#E0E0E0',
             hover: 'rgba(0, 58, 140, 0.7)',
-            dialogBackground: 'rgba(30, 30, 50, 1)'
+            dialogBackground: 'rgba(30, 30, 50, 1)',
+            success: '#4caf50',
+            error: '#f44336'
         },
         blurAmount: '15px',
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif',

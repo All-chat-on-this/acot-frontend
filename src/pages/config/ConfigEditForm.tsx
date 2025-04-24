@@ -8,7 +8,7 @@ import {colorTransition, fadeIn} from '@/styles/animations';
 import {ActionButton} from '../ConfigPage';
 import {ApiConfig} from "@/api/type/configApi.ts";
 import {useTranslation} from "react-i18next";
-import {CommonResult} from "@/types";
+import TestResponse from '@/components/TestResponse';
 
 interface ConfigEditFormProps {
     currentConfig: ApiConfig | null;
@@ -263,13 +263,6 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
                 console.error('Cannot update template, invalid JSON:', error);
             }
         }
-    };
-
-
-    // Function to determine if a test response is successful
-    // This handles both direct success property and nested data.success
-    const isSuccessfulResponse = (result: CommonResult<TestResult>): boolean => {
-        return result?.code === 0 && result?.data?.success === true;
     };
 
     const handleJsonChange = (field: string, value: string) => {
@@ -589,53 +582,7 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
 
             <AnimatePresence>
                 {testResult && (
-                    <TestResult
-                        className={isSuccessfulResponse(testResult) ? 'success' : 'error'}
-                        initial={{opacity: 0, y: 10}}
-                        animate={{opacity: 1, y: 0}}
-                        exit={{opacity: 0, y: 10}}
-                        transition={{duration: 0.3}}
-                    >
-                        <h4>{isSuccessfulResponse(testResult) ? t('connection_successful') : t('connection_failed')}</h4>
-                        {testResult.data.message && <p>{testResult.data.message}</p>}
-
-                        {/* Show response data or error data in JSON editor */}
-                        <div style={{marginTop: '8px'}}>
-                            {testResult.data.response && (
-                                <>
-                                    <SectionTitle style={{
-                                        marginTop: '12px',
-                                        marginBottom: '4px'
-                                    }}>{t('test_response')}</SectionTitle>
-                                    <JSONEditor
-                                        value={JSON.stringify(testResult.data.response, null, 2)}
-                                        onChange={() => {
-                                        }}
-                                        height="500px"
-                                        readOnly={true}
-                                        isRequestTemplate={false}
-                                    />
-                                </>
-                            )}
-
-                            {!isSuccessfulResponse(testResult) && testResult.data.error && (
-                                <>
-                                    <SectionTitle style={{
-                                        marginTop: '12px',
-                                        marginBottom: '4px'
-                                    }}>{t('error_details')}</SectionTitle>
-                                    <JSONEditor
-                                        value={testResult.data.error.startsWith('{') ? testResult.data.error : JSON.stringify(testResult.data.error, null, 2)}
-                                        onChange={() => {
-                                        }}
-                                        height="500px"
-                                        readOnly={true}
-                                        isRequestTemplate={false}
-                                    />
-                                </>
-                            )}
-                        </div>
-                    </TestResult>
+                    <TestResponse testResult={testResult}/>
                 )}
             </AnimatePresence>
         </ConfigForm>
@@ -744,51 +691,6 @@ const ErrorMessage = styled(motion.div)`
     color: #d33;
     border-radius: ${({theme}) => theme.borderRadius};
     animation: ${fadeIn} 0.3s ease;
-`;
-
-const TestResult = styled(motion.div)`
-    margin-top: 16px;
-    padding: 16px;
-    border-radius: ${({theme}) => theme.borderRadius};
-
-    h4 {
-        margin: 0 0 12px;
-        font-size: 1.1rem;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    h4::before {
-        content: '';
-        display: inline-block;
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-    }
-
-    p {
-        margin: 0 0 12px;
-        line-height: 1.5;
-    }
-
-    &.success {
-        background-color: #e8f5e9;
-        color: #2e7d32;
-
-        h4::before {
-            background-color: #2e7d32;
-        }
-    }
-
-    &.error {
-        background-color: #ffdede;
-        color: #d33;
-
-        h4::before {
-            background-color: #d33;
-        }
-    }
 `;
 
 const EyeIconButton = styled.button`
