@@ -67,11 +67,12 @@ const useConfigStore = create<ConfigStore>((set, get) => ({
         set({isLoading: true, error: null});
         try {
             const newConfig = await apiService.configs.createConfig(configData);
-            set(state => ({
-                configs: [...state.configs, newConfig],
-                currentConfig: newConfig,
-                isLoading: false
-            }));
+            // Set the new config as current
+            set({currentConfig: newConfig});
+
+            // Fetch updated configs list to ensure UI is in sync
+            await get().fetchConfigs();
+            
             return newConfig;
         } catch (error) {
             set({
@@ -85,16 +86,13 @@ const useConfigStore = create<ConfigStore>((set, get) => ({
     updateConfig: async (id: number, configData) => {
         set({isLoading: true, error: null});
         try {
-            const updatedConfig = await apiService.configs.updateConfig(id, configData);
-            set(state => ({
-                configs: state.configs.map(config =>
-                    config.id === id ? updatedConfig : config
-                ),
-                currentConfig: state.currentConfig?.id === id
-                    ? updatedConfig
-                    : state.currentConfig,
-                isLoading: false
-            }));
+            await apiService.configs.updateConfig(id, configData);
+
+            // Fetch the updated config to update the current config
+            await get().fetchConfig(id);
+
+            // Fetch updated configs list to ensure UI is in sync
+            await get().fetchConfigs();
         } catch (error) {
             set({
                 isLoading: false,
@@ -128,28 +126,30 @@ const useConfigStore = create<ConfigStore>((set, get) => ({
     testConfig: async (configData) => {
         set({isLoading: true, error: null, testResult: null});
         try {
-            const result = await apiService.configs.testConfig(configData);
+            const result = await apiService.configs.testConfig(configData as ApiConfig);
             set({
                 testResult: result,
                 isLoading: false
             });
 
-            // If we've successfully tested a saved config, we don't need to update the UI here
-            // because the backend sets isAvailable automatically
-
-            // If the test was successful and we're testing the current config, fetch it again to get updated isAvailable
+            // If the test was successful and we're testing the current config with an ID, fetch it again
             const currentConfig = get().currentConfig;
-            if (result.success && currentConfig && configData.id && currentConfig.id === configData.id) {
+            if (result.data?.success && currentConfig && configData.id && currentConfig.id === configData.id) {
                 await get().fetchConfig(currentConfig.id);
             }
         } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to test configuration';
             set({
                 isLoading: false,
-                error: error instanceof Error ? error.message : 'Failed to test configuration',
+                error: errorMessage,
                 testResult: {
-                    success: false,
-                    message: 'Test failed',
-                    error: error instanceof Error ? error.message : 'Unknown error'
+                    code: 500,
+                    msg: 'Test failed',
+                    data: {
+                        success: false,
+                        message: errorMessage,
+                        error: errorMessage
+                    } as TestResult
                 }
             });
         }

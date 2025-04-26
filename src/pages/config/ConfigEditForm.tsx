@@ -46,10 +46,17 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
 
     const {t} = useTranslation();
 
+    // State to track if we've successfully tested the configuration
+    const [hasSuccessfulTest, setHasSuccessfulTest] = useState(false);
+
     // Debug effect to check test result data
     useEffect(() => {
         if (testResult) {
             console.log('Test Result Object:', testResult);
+            // Update successful test status
+            if (testResult.data?.success) {
+                setHasSuccessfulTest(true);
+            }
         }
     }, [testResult]);
 
@@ -317,7 +324,9 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
                 requestAssistantField: paths.requestAssistantField,
                 requestSystemField: paths.requestSystemField,
                 responseTextPath: paths.responseTextPath,
-                responseThinkingTextPath: paths.responseThinkingTextPath
+                responseThinkingTextPath: paths.responseThinkingTextPath,
+                // If creating a new configuration, and we've had a successful test, set to true
+                isAvailable: !currentConfig && hasSuccessfulTest ? true : undefined
             };
 
             if (currentConfig) {
@@ -335,6 +344,9 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
 
     const handleTestConfig = async () => {
         try {
+            // Reset the successful test flag
+            setHasSuccessfulTest(false);
+            
             // Parse JSON templates
             let requestTemplate = JSON.parse(formData.requestTemplate);
             const responseTemplate = JSON.parse(formData.responseTemplate);

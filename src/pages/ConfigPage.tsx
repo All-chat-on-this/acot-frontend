@@ -34,6 +34,7 @@ const ConfigPage: React.FC = () => {
         currentConfig,
         fetchConfigs,
         setCurrentConfig,
+        resetTestResult,
         isLoading
     } = useConfigStore();
 
@@ -47,6 +48,7 @@ const ConfigPage: React.FC = () => {
     const handleNewConfig = () => {
         setEditMode(true);
         setCurrentConfig(null);
+        resetTestResult();
     };
 
     const handleEditConfig = () => {
@@ -61,6 +63,7 @@ const ConfigPage: React.FC = () => {
         const config = configs.find(c => c.id === configId);
         if (config) {
             setCurrentConfig(config);
+            resetTestResult();
         }
     };
 

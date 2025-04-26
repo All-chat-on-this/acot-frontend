@@ -1,6 +1,6 @@
 import React, {useContext, useEffect, useState} from 'react';
 import styled from 'styled-components';
-import Editor, {BeforeMount, OnChange, OnMount} from '@monaco-editor/react';
+import Editor, {BeforeMount, loader, OnChange, OnMount} from '@monaco-editor/react';
 import {FaCode, FaCog, FaEdit, FaInfoCircle} from 'react-icons/fa';
 import {motion} from 'framer-motion';
 import {colorTransition, fadeIn} from '@/styles/animations';
@@ -43,6 +43,13 @@ interface JSONEditorProps {
     // To toggle between request/response sections in path editor
     isRequestTemplate?: boolean;
 }
+
+// load loader.js from local node_modules
+loader.config({
+    paths: {
+        vs: '/monaco-editor/min/vs'
+    }
+});
 
 const JSONEditor: React.FC<JSONEditorProps> = ({
                                                    value,
