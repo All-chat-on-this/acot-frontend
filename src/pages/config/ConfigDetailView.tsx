@@ -37,6 +37,18 @@ const ConfigDetailView: React.FC<ConfigDetailViewProps> = ({
         }
     };
 
+    // Initialize paths for JSONEditor
+    const paths = {
+        requestMessageGroupPath: currentConfig.requestMessageGroupPath || 'messages',
+        requestRolePathFromGroup: currentConfig.requestRolePathFromGroup || 'role',
+        requestTextPathFromGroup: currentConfig.requestTextPathFromGroup || 'content',
+        requestUserRoleField: currentConfig.requestUserRoleField || 'user',
+        requestAssistantField: currentConfig.requestAssistantField || 'assistant',
+        requestSystemField: currentConfig.requestSystemField || 'system',
+        responseTextPath: currentConfig.responseTextPath || 'choices[0].message.content',
+        responseThinkingTextPath: currentConfig.responseThinkingTextPath || 'choices[0].message.reasoning_content'
+    };
+
     return (
         <ConfigDetailContent
             key="details"
@@ -107,6 +119,38 @@ const ConfigDetailView: React.FC<ConfigDetailViewProps> = ({
                 </ConfigDetailValue>
             </ConfigDetail>
 
+            <SectionTitle>{t('request_configuration')}</SectionTitle>
+
+            <ConfigDetail>
+                <ConfigDetailLabel>{t('message_group_path')}</ConfigDetailLabel>
+                <ConfigDetailValue>{currentConfig.requestMessageGroupPath || 'messages'}</ConfigDetailValue>
+            </ConfigDetail>
+
+            <ConfigDetail>
+                <ConfigDetailLabel>{t('role_path_in_group')}</ConfigDetailLabel>
+                <ConfigDetailValue>{currentConfig.requestRolePathFromGroup || 'role'}</ConfigDetailValue>
+            </ConfigDetail>
+
+            <ConfigDetail>
+                <ConfigDetailLabel>{t('content_path_in_group')}</ConfigDetailLabel>
+                <ConfigDetailValue>{currentConfig.requestTextPathFromGroup || 'content'}</ConfigDetailValue>
+            </ConfigDetail>
+
+            <ConfigDetail>
+                <ConfigDetailLabel>{t('user_role')}</ConfigDetailLabel>
+                <ConfigDetailValue>{currentConfig.requestUserRoleField || 'user'}</ConfigDetailValue>
+            </ConfigDetail>
+
+            <ConfigDetail>
+                <ConfigDetailLabel>{t('assistant_role')}</ConfigDetailLabel>
+                <ConfigDetailValue>{currentConfig.requestAssistantField || 'assistant'}</ConfigDetailValue>
+            </ConfigDetail>
+
+            <ConfigDetail>
+                <ConfigDetailLabel>{t('system_role')}</ConfigDetailLabel>
+                <ConfigDetailValue>{currentConfig.requestSystemField || 'system'}</ConfigDetailValue>
+            </ConfigDetail>
+
             <ConfigDetail>
                 <ConfigDetailLabel>{t('request_template')}</ConfigDetailLabel>
                 <JSONEditor
@@ -115,7 +159,20 @@ const ConfigDetailView: React.FC<ConfigDetailViewProps> = ({
                     }}
                     readOnly={true}
                     isRequestTemplate={true}
+                    paths={paths}
                 />
+            </ConfigDetail>
+
+            <SectionTitle>{t('response_configuration')}</SectionTitle>
+
+            <ConfigDetail>
+                <ConfigDetailLabel>{t('response_text_path')}</ConfigDetailLabel>
+                <ConfigDetailValue>{currentConfig.responseTextPath || 'choices[0].message.content'}</ConfigDetailValue>
+            </ConfigDetail>
+
+            <ConfigDetail>
+                <ConfigDetailLabel>{t('response_thinking_path')}</ConfigDetailLabel>
+                <ConfigDetailValue>{currentConfig.responseThinkingTextPath || 'choices[0].message.reasoning_content'}</ConfigDetailValue>
             </ConfigDetail>
 
             <ConfigDetail>
@@ -126,6 +183,7 @@ const ConfigDetailView: React.FC<ConfigDetailViewProps> = ({
                     }}
                     readOnly={true}
                     isRequestTemplate={false}
+                    paths={paths}
                 />
             </ConfigDetail>
         </ConfigDetailContent>
@@ -228,6 +286,13 @@ const AvailabilityStatus = styled.div<{ available: boolean }>`
         border-radius: 50%;
         background-color: ${props => props.available ? '#4caf50' : '#f44336'};
     }
+`;
+
+const SectionTitle = styled.h4`
+    margin-top: 24px;
+    margin-bottom: 12px;
+    font-size: 1.1rem;
+    color: ${({theme}) => theme.colors.primary};
 `;
 
 export default ConfigDetailView; 
