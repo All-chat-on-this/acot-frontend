@@ -84,8 +84,9 @@ const useConversationStore = create<ConversationStore>((set, get) => ({
             const newConversation = await apiService.conversations.createConversation(request);
 
             // Update the store with the new conversation
+            // Id is unique, so we can assume it's the last one
             set(state => ({
-                conversations: [...state.conversations, newConversation],
+                conversations: [newConversation, ...state.conversations],
                 currentConversation: newConversation,
                 isLoading: false
             }));

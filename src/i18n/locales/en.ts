@@ -43,8 +43,6 @@ const enTranslation = {
     welcome: 'Welcome to ACOT',
     welcome_back: 'Welcome back,',
     login_to_start: 'Login to get started',
-    start_chat: 'Start Chat',
-    new_chat_desc: 'Begin a new conversation with AI',
     configure_api: 'Configure API',
     configure_api_desc: 'Set up or modify your API configurations',
     profile_desc: 'View and update your profile settings',

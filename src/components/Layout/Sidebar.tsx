@@ -119,7 +119,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
             // Check if result exists and has list property
             const newConversations = result?.list || [];
-            
+
             if (resetList) {
                 setConversations(newConversations);
                 setHasMore(newConversations.length > 0 && result.total > newConversations.length);
@@ -149,6 +149,9 @@ const Sidebar: React.FC<SidebarProps> = ({
             setEditingConversationId(null);
             setEditTitle('');
             navigate(`/chat/${newConversation.id}`);
+            console.log('editingConversationId === newConversation.id:', editingConversationId === conversations[conversations.length - 1].id);
+            console.log('editingConversationId:', editingConversationId);
+            console.log('conversations[conversations.length - 1].id:', conversations[conversations.length - 1].id);
         } catch (error) {
             console.error('Failed to create new conversation:', error);
         }
@@ -311,7 +314,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                                                         whileTap={{scale: 0.97}}
                                                         className={({isActive}) => isActive ? 'active' : ''}
                                                     >
-                                                        <FiMessageSquare size={16}/>
+                                                        <FiMessageSquare size={16} style={{marginRight: 10}}/>
                                                         <ConversationTitle>{conversation.title}</ConversationTitle>
                                                         <EditConversationButton
                                                             onClick={(e) => handleEditConversation(conversation.id, conversation.title, e)}
@@ -523,7 +526,6 @@ const ConversationItem = styled(motion(NavLink))`
     }
 
     svg {
-        margin-right: 10px;
         color: ${({theme}) => theme.colors.primary};
     }
 `;

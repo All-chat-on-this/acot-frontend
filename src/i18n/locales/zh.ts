@@ -43,8 +43,6 @@ const zhTranslation = {
     welcome: '欢迎使用ACOT',
     welcome_back: '欢迎回来，',
     login_to_start: '登录以开始使用',
-    start_chat: '开始聊天',
-    new_chat_desc: '开始与AI的新对话',
     configure_api: '配置API',
     configure_api_desc: '设置或修改您的API配置',
     profile_desc: '查看并更新您的个人资料设置',

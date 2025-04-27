@@ -1,53 +1,15 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {useNavigate} from 'react-router-dom';
 import styled from 'styled-components';
 import {useTranslation} from 'react-i18next';
 import {Layout} from '@/components/Layout';
 import useAuthStore from '@/store/authStore';
-import useConversationStore from '@/store/conversationStore';
-import {FiMessageSquare, FiSettings, FiUser} from 'react-icons/fi';
+import {FiSettings, FiUser} from 'react-icons/fi';
 
 const HomePage: React.FC = () => {
     const {t} = useTranslation();
     const {isAuthenticated, user} = useAuthStore();
-    const {createConversation, conversations} = useConversationStore();
     const navigate = useNavigate();
-
-    // Redirect authenticated users to a conversation
-    useEffect(() => {
-        const redirectAuthenticatedUser = async () => {
-            if (isAuthenticated) {
-                // If there are existing conversations, redirect to the most recent one
-                if (conversations.length > 0) {
-                    // Sort conversations by updateTime in descending order
-                    const sortedConversations = [...conversations].sort(
-                        (a, b) => new Date(b.updateTime || 0).getTime() - new Date(a.updateTime || 0).getTime()
-                    );
-                    navigate(`/chat/${sortedConversations[0].id}`);
-                } else {
-                    // Otherwise create a new conversation
-                    try {
-                        console.log('Creating new conversation');
-                        const newConversation = await createConversation(t('new_conversation'));
-                        navigate(`/chat/${newConversation.id}`);
-                    } catch (error) {
-                        console.error('Failed to create conversation:', error);
-                    }
-                }
-            }
-        };
-
-        redirectAuthenticatedUser()
-    }, [isAuthenticated, conversations, createConversation, navigate, t]);
-
-    const handleStartChat = async () => {
-        try {
-            const newConversation = await createConversation(t('new_conversation'));
-            navigate(`/chat/${newConversation.id}`);
-        } catch (error) {
-            console.error('Failed to create conversation:', error);
-        }
-    };
 
     return (
         <Layout>
@@ -75,16 +37,6 @@ const HomePage: React.FC = () => {
 
                 {isAuthenticated && (
                     <ActionCards>
-                        <ActionCard onClick={handleStartChat}>
-                            <ActionIcon>
-                                <FiMessageSquare size={32}/>
-                            </ActionIcon>
-                            <ActionTitle>{t('start_chat')}</ActionTitle>
-                            <ActionDescription>
-                                {t('new_chat_desc')}
-                            </ActionDescription>
-                        </ActionCard>
-
                         <ActionCard onClick={() => navigate('/config')}>
                             <ActionIcon>
                                 <FiSettings size={32}/>
