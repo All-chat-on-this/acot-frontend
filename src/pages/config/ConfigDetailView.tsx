@@ -8,6 +8,7 @@ import useConfigStore from '@/store/configStore';
 import {ActionButton} from '../ConfigPage';
 import {useTranslation} from "react-i18next";
 import {ApiConfig} from "@/api/type/configApi.ts";
+import {useDialog} from '@/components/Dialog';
 
 interface ConfigDetailViewProps {
     currentConfig: ApiConfig;
@@ -24,6 +25,7 @@ const ConfigDetailView: React.FC<ConfigDetailViewProps> = ({
                                                            }) => {
     const {deleteConfig} = useConfigStore();
     const {t} = useTranslation();
+    const dialog = useDialog();
 
     // Add fallback translations for new keys
     const available = t('available', 'Available');
@@ -32,7 +34,15 @@ const ConfigDetailView: React.FC<ConfigDetailViewProps> = ({
     const handleDeleteConfig = async () => {
         if (!currentConfig) return;
 
-        if (window.confirm(t('delete_confirm', {name: currentConfig.name}))) {
+        const confirmed = await dialog.confirm({
+            title: t('delete_confirmation'),
+            message: t('delete_confirm', {name: currentConfig.name}),
+            type: 'warning',
+            confirmLabel: t('delete'),
+            cancelLabel: t('cancel')
+        });
+
+        if (confirmed) {
             await deleteConfig(currentConfig.id);
         }
     };

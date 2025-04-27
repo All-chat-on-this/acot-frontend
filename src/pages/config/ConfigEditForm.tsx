@@ -9,6 +9,7 @@ import {ActionButton} from '../ConfigPage';
 import {ApiConfig} from "@/api/type/configApi.ts";
 import {useTranslation} from "react-i18next";
 import TestResponse from '@/components/TestResponse';
+import {useDialog} from '@/components/Dialog';
 
 interface ConfigEditFormProps {
     currentConfig: ApiConfig | null;
@@ -45,6 +46,7 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
     } = useConfigStore();
 
     const {t} = useTranslation();
+    const dialog = useDialog();
 
     // State to track if we've successfully tested the configuration
     const [hasSuccessfulTest, setHasSuccessfulTest] = useState(false);
@@ -338,7 +340,11 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
             handleCancelEdit();
         } catch (error) {
             console.error('Failed to save configuration:', error);
-            alert(t('invalid_json'));
+            await dialog.alert({
+                title: t('error'),
+                message: t('invalid_json'),
+                type: 'error'
+            });
         }
     };
 
@@ -384,7 +390,11 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
             await testConfig(configData);
         } catch (error) {
             console.error('Failed to test configuration:', error);
-            alert(t('invalid_json'));
+            await dialog.alert({
+                title: t('error'),
+                message: t('invalid_json'),
+                type: 'error'
+            });
         }
     };
 

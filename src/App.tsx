@@ -6,6 +6,7 @@ import usePreferenceStore from './store/preferenceStore.ts'
 import useConversationStore from './store/conversationStore'
 import useUserStore from './store/userStore'
 import router from './router/index'
+import {DialogProvider} from './components/Dialog'
 
 // Import i18n
 import './i18n/i18n'
@@ -35,7 +36,9 @@ function App() {
 
     return (
         <ThemeProvider>
-            <RouterProvider router={router}/>
+            <DialogProvider>
+                <RouterProvider router={router}/>
+            </DialogProvider>
         </ThemeProvider>
     )
 }

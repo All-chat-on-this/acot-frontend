@@ -84,6 +84,8 @@ const enTranslation = {
     rename_message_tooltip: 'Edit message (will remove all subsequent messages)',
     confirm_rename_truncate: 'Editing this message will remove all following messages in the conversation. Continue?',
     saving_changes: 'Saving changes...',
+    rename_message: 'Edit Message',
+    rename_failed: 'Failed to update message',
 
     // Config
     api_configs: 'API Configurations',
@@ -124,6 +126,7 @@ const enTranslation = {
     invalid_json: 'Invalid JSON format. Please check your templates.',
     available: 'Available',
     unavailable: 'Unavailable',
+    delete_confirmation: 'Confirm Deletion',
 
     // Request Configuration
     request_configuration: 'Request Configuration',
@@ -180,7 +183,28 @@ const enTranslation = {
     save_api_key_confirm_title: 'Disable API Key Storage',
     save_api_key_confirm_message: 'Are you sure you want to disable API key storage? This will result in the loss of all API keys in your configuration.',
     yes: 'Yes',
-    no: 'No'
+    no: 'No',
+
+    // Dialog
+    ok: 'OK',
+    proceed: 'Proceed',
+    info: 'Information',
+    warning: 'Warning',
+    error: 'Error',
+    success: 'Success',
+    confirmation: 'Confirmation',
+    are_you_sure_you_want_to_proceed: 'Are you sure you want to proceed?',
+    dialog_examples: 'Dialog Examples',
+    click_buttons_to_see_different_dialog_types: 'Click the buttons below to see different types of dialogs',
+    info_dialog: 'Info Dialog',
+    warning_dialog: 'Warning Dialog',
+    error_dialog: 'Error Dialog',
+    confirm_dialog: 'Confirm Dialog',
+    how_to_use: 'How to Use',
+    this_is_an_info_dialog: 'This is an informational message.',
+    this_is_a_warning_dialog: 'This is a warning message. Proceed with caution.',
+    this_is_an_error_dialog: 'This is an error message. Something went wrong.',
+    you_confirmed_the_action: 'You confirmed the action successfully!'
 };
 
 export default enTranslation; 

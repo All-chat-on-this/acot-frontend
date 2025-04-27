@@ -84,6 +84,8 @@ const zhTranslation = {
     rename_message_tooltip: '编辑消息（将移除所有后续消息）',
     confirm_rename_truncate: '编辑此消息将移除对话中的所有后续消息。是否继续？',
     saving_changes: '保存更改中...',
+    rename_message: '编辑消息',
+    rename_failed: '更新消息失败',
 
     // Config
     api_configs: 'API配置',
@@ -124,6 +126,7 @@ const zhTranslation = {
     invalid_json: 'JSON格式无效。请检查您的模板。',
     available: '可用',
     unavailable: '不可用',
+    delete_confirmation: '确认删除',
 
     // Request Configuration
     request_configuration: '请求配置',
@@ -180,7 +183,28 @@ const zhTranslation = {
     save_api_key_confirm_title: '禁用API密钥存储',
     save_api_key_confirm_message: '您确定要禁用API密钥存储吗？这将导致您配置中的所有API密钥丢失。',
     yes: '是',
-    no: '否'
+    no: '否',
+
+    // Dialog
+    ok: '确定',
+    proceed: '继续',
+    info: '信息',
+    warning: '警告',
+    error: '错误',
+    success: '成功',
+    confirmation: '确认',
+    are_you_sure_you_want_to_proceed: '您确定要继续吗？',
+    dialog_examples: '对话框示例',
+    click_buttons_to_see_different_dialog_types: '点击下方按钮查看不同类型的对话框',
+    info_dialog: '信息对话框',
+    warning_dialog: '警告对话框',
+    error_dialog: '错误对话框',
+    confirm_dialog: '确认对话框',
+    how_to_use: '使用方法',
+    this_is_an_info_dialog: '这是一条信息提示。',
+    this_is_a_warning_dialog: '这是一条警告信息。请谨慎操作。',
+    this_is_an_error_dialog: '这是一条错误信息。发生了错误。',
+    you_confirmed_the_action: '您已成功确认操作！'
 };
 
 export default zhTranslation; 

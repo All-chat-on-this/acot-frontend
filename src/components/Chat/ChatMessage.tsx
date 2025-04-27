@@ -7,6 +7,7 @@ import {FiCheck, FiEdit2, FiEye, FiEyeOff, FiLoader, FiX} from 'react-icons/fi';
 import {colorTransition, spinner} from '@/styles/animations';
 import useAuthStore from "@/store/authStore.ts";
 import {Message} from "@/api/type/modelApi.ts";
+import {useDialog} from '@/components/Dialog';
 
 // Add loading animation keyframes
 const loadingDotsAnimation = `
@@ -32,6 +33,7 @@ interface ChatMessageProps {
 const ChatMessage: React.FC<ChatMessageProps> = ({message, showThinking, onRename}) => {
     const {t} = useTranslation();
     const {user} = useAuthStore();
+    const dialog = useDialog();
     const [showThinkingText, setShowThinkingText] = useState(showThinking);
     const [isEditing, setIsEditing] = useState(false);
     const [editValue, setEditValue] = useState('');
@@ -55,7 +57,14 @@ const ChatMessage: React.FC<ChatMessageProps> = ({message, showThinking, onRenam
     const saveEditing = async () => {
         if (onRename && editValue.trim() !== message.content) {
             // Confirm with the user that they understand subsequent messages will be removed
-            const confirmed = window.confirm(t('confirm_rename_truncate'));
+            const confirmed = await dialog.confirm({
+                title: t('rename_message'),
+                message: t('confirm_rename_truncate'),
+                type: 'warning',
+                confirmLabel: t('proceed'),
+                cancelLabel: t('cancel')
+            });
+
             if (!confirmed) {
                 return; // User canceled the operation
             }
@@ -74,6 +83,12 @@ const ChatMessage: React.FC<ChatMessageProps> = ({message, showThinking, onRenam
                 // On error, revert to original content and re-enable editing
                 setTempContent(null);
                 setIsEditing(true);
+
+                await dialog.alert({
+                    title: t('error'),
+                    message: t('rename_failed'),
+                    type: 'error'
+                });
             } finally {
                 setIsSaving(false);
             }
