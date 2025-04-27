@@ -16,7 +16,7 @@ interface ChatMessageProps {
 
 const ChatMessage: React.FC<ChatMessageProps> = ({message, showThinking, onRename}) => {
     const {t} = useTranslation();
-    const { user } = useAuthStore();
+    const {user} = useAuthStore();
     const [showThinkingText, setShowThinkingText] = useState(showThinking);
     const [isEditing, setIsEditing] = useState(false);
     const [editValue, setEditValue] = useState('');
@@ -177,7 +177,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({message, showThinking, onRenam
                     </AnimatePresence>
 
                     <MessageTime>
-                        {new Date(message.createTime!).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}
+                        {message.updateTime || message.createTime}
                     </MessageTime>
                 </MessageContent>
             </motion.div>
