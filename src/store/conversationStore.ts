@@ -3,6 +3,8 @@ import apiService from '@/api/apiService';
 import {Conversation, ConversationCreateOrUpdateRequest, Message, SendMessageRequest} from '@/api/type/modelApi';
 import {AxiosError} from 'axios';
 import {CommonResult} from '@/types';
+import {getFormattedCurrentTime} from "@/utils/timeUtils.ts";
+import useConfigStore from "@/store/configStore.ts";
 
 interface ConversationState {
     conversations: Conversation[];
@@ -156,35 +158,69 @@ const useConversationStore = create<ConversationStore>((set, get) => ({
                 throw new Error('No active conversation');
             }
 
+            // Create temporary user message for immediate display
+            const tempUserMessage: Message = {
+                id: Date.now(), // Temporary ID
+                conversationId: currentConversation.id,
+                configId,
+                role: 'user',
+                content,
+                thinkingText: null,
+                createTime: getFormattedCurrentTime()
+            };
+
+            // Get config name for display purposes
+            const configStore = useConfigStore.getState();
+            const config = configStore.configs.find(c => c.id === configId);
+            const configName = config?.name || '';
+
+            // Create temporary assistant message with loading state
+            const tempAssistantMessage: Message = {
+                id: Date.now() + 1, // Different temporary ID
+                conversationId: currentConversation.id,
+                configId,
+                configName,
+                role: 'assistant',
+                content: '',
+                thinkingText: 'loading',
+                createTime: getFormattedCurrentTime()
+            };
+
+            // Update state with both temporary messages
+            set(state => ({
+                messages: [...state.messages, tempUserMessage, tempAssistantMessage]
+            }));
+
             const sendMessageRequest: SendMessageRequest = {
                 conversationId: currentConversation.id,
                 configId,
                 message: content
             };
 
-            // Create user message locally first for UI feedback
-            const userMessage: Message = {
-                id: Date.now(), // Temporary ID
-                conversationId: currentConversation.id,
-                role: 'user',
-                content,
-                thinkingText: null,
-                createTime: new Date().toISOString()
+            // Send the message to get the assistant response
+            // The backend will create both user and assistant messages
+            const assistantResponse = await apiService.messages.sendMessage(sendMessageRequest);
+
+            // Replace temporary messages with real data
+            // For the user message, we'll create a permanent one based on our temporary
+            // with the content we sent, but keep the original timestamp for better UX
+            const permanentUserMessage: Message = {
+                ...tempUserMessage,
+                id: assistantResponse.id - 1, // Assuming sequential IDs in the backend
             };
 
             set(state => ({
-                messages: [...state.messages, userMessage]
-            }));
-
-            // Send the message to the backend
-            const responseMessage = await apiService.messages.sendMessage(sendMessageRequest);
-
-            set(state => ({
-                messages: [...state.messages.filter(m => m.role !== 'user' || m.id !== userMessage.id), responseMessage],
+                messages: [
+                    ...state.messages.filter(
+                        m => m.id !== tempUserMessage.id && m.id !== tempAssistantMessage.id
+                    ),
+                    permanentUserMessage,
+                    assistantResponse
+                ],
                 isLoading: false
             }));
 
-            return responseMessage;
+            return assistantResponse;
         } catch (error) {
             const errorMsg = 'Failed to send message';
             set({error: errorMsg, isLoading: false});
@@ -206,6 +242,7 @@ const useConversationStore = create<ConversationStore>((set, get) => ({
             // Create updated message request
             const updatedMessage = {
                 conversationId: message.conversationId,
+                configId: message.configId,
                 role: message.role,
                 content: content,
                 thinkingText: message.thinkingText === null ? undefined : message.thinkingText

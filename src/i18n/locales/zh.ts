@@ -75,6 +75,7 @@ const zhTranslation = {
     ai_thinking_process: 'AI的思考过程：',
     configure_api_first: '请先配置API',
     ai_assistant: 'AI助手',
+    ai_thinking: 'AI正在思考',
     you: '您',
     system: '系统',
     hide_thinking_process: '隐藏思考过程',

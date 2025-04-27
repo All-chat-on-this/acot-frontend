@@ -29,6 +29,8 @@ export interface PageResult<T> {
 export interface Message {
     id: number;
     conversationId: number;
+    configId?: number;
+    configName?: string;
     role: 'user' | 'assistant' | 'system' | string;
     content: string;
     thinkingText: string | null;
@@ -44,6 +46,7 @@ export interface SendMessageRequest {
 
 export interface MessageCreateRequest {
     conversationId: number;
+    configId?: number;
     role: string;
     content: string;
     thinkingText?: string;

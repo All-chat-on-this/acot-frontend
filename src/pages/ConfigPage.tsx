@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import styled from 'styled-components';
 import {useTranslation} from 'react-i18next';
 import {AnimatePresence, motion} from 'framer-motion';
@@ -32,7 +32,6 @@ const ConfigPage: React.FC = () => {
     const {
         configs,
         currentConfig,
-        fetchConfigs,
         setCurrentConfig,
         resetTestResult,
         isLoading
@@ -40,10 +39,6 @@ const ConfigPage: React.FC = () => {
 
     const [editMode, setEditMode] = useState(false);
     const [showApiKey, setShowApiKey] = useState(false);
-
-    useEffect(() => {
-        fetchConfigs();
-    }, [fetchConfigs]);
 
     const handleNewConfig = () => {
         setEditMode(true);

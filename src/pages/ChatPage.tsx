@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {useNavigate, useParams} from 'react-router-dom';
+import {useParams} from 'react-router-dom';
 import styled from 'styled-components';
 import {useTranslation} from 'react-i18next';
 import {AnimatePresence, motion} from 'framer-motion';
@@ -13,7 +13,6 @@ import {slideUp} from '@/styles/animations';
 const ChatPage: React.FC = () => {
     const {t} = useTranslation();
     const {id} = useParams<{ id: string }>();
-    const navigate = useNavigate();
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [localError, setLocalError] = useState<string | null>(null);
 

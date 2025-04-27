@@ -75,6 +75,7 @@ const enTranslation = {
     ai_thinking_process: 'AI\'s thinking process:',
     configure_api_first: 'Please configure an API first',
     ai_assistant: 'AI Assistant',
+    ai_thinking: 'AI is thinking',
     you: 'You',
     system: 'System',
     hide_thinking_process: 'Hide thinking process',

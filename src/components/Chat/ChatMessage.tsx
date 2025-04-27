@@ -8,6 +8,21 @@ import {colorTransition} from '@/styles/animations';
 import useAuthStore from "@/store/authStore.ts";
 import {Message} from "@/api/type/modelApi.ts";
 
+// Add loading animation keyframes
+const loadingDotsAnimation = `
+  @keyframes loadingDots {
+    0%, 20% {
+      content: ".";
+    }
+    40% {
+      content: "..";
+    }
+    60%, 100% {
+      content: "...";
+    }
+  }
+`;
+
 interface ChatMessageProps {
     message: Message;
     showThinking: boolean;
@@ -81,9 +96,10 @@ const ChatMessage: React.FC<ChatMessageProps> = ({message, showThinking, onRenam
                 animate="animate"
                 whileHover="hover"
                 style={{
-                    width: isUser ? (isEditing ? '100%' : 'auto') : isSystem ? '100%' : 'auto',
+                    width: isUser ? (isEditing ? '100%' : '80%') : isSystem ? '100%' : '80%',
                     marginLeft: isUser ? (isEditing ? '0' : 'auto') : 'initial',
-                    marginRight: isUser ? '0' : 'initial'
+                    marginRight: isUser ? '0' : 'initial',
+                    display: 'inline-block'
                 }}
             >
                 <MessageContent
@@ -91,13 +107,14 @@ const ChatMessage: React.FC<ChatMessageProps> = ({message, showThinking, onRenam
                         isUser && 'user',
                         isAssistant && 'assistant',
                         isSystem && 'system',
-                        isEditing && 'editing'
+                        isEditing && 'editing',
+                        hasThinkingText && message.thinkingText === 'loading' && 'loading'
                     ].filter(Boolean).join(' ')}
                 >
                     {isAssistant && (
                         <MessageHeader>
-                            <MessageRole>{t('ai_assistant')}</MessageRole>
-                            {hasThinkingText && (
+                            <MessageRole>{message.configName || t('ai_assistant')}</MessageRole>
+                            {hasThinkingText && message.thinkingText !== 'loading' && (
                                 <ThinkingToggle
                                     onClick={toggleThinkingText}
                                     whileHover={{scale: 1.1}}
@@ -157,13 +174,18 @@ const ChatMessage: React.FC<ChatMessageProps> = ({message, showThinking, onRenam
                                     </EditActionButton>
                                 </EditActions>
                             </EditContainer>
+                        ) : message.thinkingText === 'loading' ? (
+                            <LoadingAnimation>
+                                {t('ai_thinking')}
+                                <LoadingDots/>
+                            </LoadingAnimation>
                         ) : (
                             <ReactMarkdown>{message.content}</ReactMarkdown>
                         )}
                     </MessageText>
 
                     <AnimatePresence>
-                        {hasThinkingText && showThinkingText && (
+                        {hasThinkingText && showThinkingText && message.thinkingText !== 'loading' && (
                             <ThinkingText
                                 initial={{opacity: 0, height: 0}}
                                 animate={{opacity: 1, height: 'auto'}}
@@ -203,7 +225,6 @@ const MessageContainer = styled.div`
 `;
 
 const MessageContent = styled.div`
-    max-width: 80%;
     padding: 12px 16px;
     border-radius: ${({theme}) => theme.borderRadius};
     position: relative;
@@ -410,6 +431,23 @@ const EditActionButton = styled(motion.button)`
         color: ${({theme}) => theme.colors.primary};
         font-weight: 500;
     }
+`;
+
+const LoadingAnimation = styled.div`
+    display: flex;
+    align-items: center;
+    font-style: italic;
+    color: ${({theme}) => theme.colors.assistantBubbleText};
+    opacity: 0.8;
+`;
+
+const LoadingDots = styled.span`
+    &::after {
+        content: "";
+        animation: loadingDots 1.5s infinite;
+    }
+
+    ${loadingDotsAnimation}
 `;
 
 export default ChatMessage; 
