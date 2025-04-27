@@ -4,6 +4,7 @@ import {useTranslation} from 'react-i18next';
 import {FiCheck, FiChevronDown, FiGlobe} from 'react-icons/fi';
 import {AnimatePresence, motion} from 'framer-motion';
 import {colorTransition, fadeIn} from '@/styles/animations';
+import usePreferenceStore from '@/store/preferenceStore';
 
 interface Language {
     code: string;
@@ -20,14 +21,18 @@ const languages: Language[] = [
 
 const LanguageSwitch: React.FC = () => {
     const {i18n} = useTranslation();
+    const {updateLanguage} = usePreferenceStore();
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     const currentLanguage = languages.find(lang => lang.code === i18n.language) || languages[0];
 
-    const changeLanguage = (lng: string) => {
+    const changeLanguage = async (lng: string) => {
         i18n.changeLanguage(lng);
+        // Save to localStorage for immediate effect
         localStorage.setItem('acot-language', lng);
+        // Also update in backend through preference store
+        await updateLanguage(lng);
         setIsOpen(false);
     };
 

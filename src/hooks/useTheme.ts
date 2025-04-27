@@ -1,6 +1,6 @@
 import {useContext} from 'react';
 import {ThemeContext} from '@/theme/ThemeProvider';
-import usePreferenceStore from '@/store/userStore.ts';
+import usePreferenceStore from '@/store/preferenceStore';
 
 const useTheme = () => {
     const {currentTheme, setTheme, themeProps} = useContext(ThemeContext);

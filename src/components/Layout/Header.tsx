@@ -9,6 +9,7 @@ import {FiCheck, FiChevronDown, FiLogOut, FiMenu, FiMoon, FiServer, FiSun, FiUse
 import LanguageSwitch from '../LanguageSwitch';
 import {colorTransition} from '@/styles/animations';
 import useConfigStore from '@/store/configStore';
+import usePreferenceStore from '@/store/preferenceStore';
 
 interface HeaderProps {
     onToggleSidebar?: () => void;
@@ -19,16 +20,18 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar}) => {
     const {user, isAuthenticated, logout} = useAuthStore();
     const {currentTheme, toggleLightDark, toggleDreamlikeColor} = useTheme();
     const {configs, currentConfig, fetchConfigs, setCurrentConfig} = useConfigStore();
+    const {fetchPreference} = usePreferenceStore();
     const navigate = useNavigate();
 
     const [menuOpen, setMenuOpen] = useState(false);
     const [configDropdownOpen, setConfigDropdownOpen] = useState(false);
     const configDropdownRef = useRef<HTMLDivElement>(null);
 
-    // Fetch configs if not present
+    // Fetch configs and preferences if not present
     useEffect(() => {
         fetchConfigs();
-    }, [fetchConfigs]);
+        fetchPreference();
+    }, [fetchConfigs, fetchPreference]);
 
     // Close config dropdown when clicking outside
     useEffect(() => {
