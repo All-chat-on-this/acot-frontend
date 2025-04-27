@@ -1,11 +1,10 @@
-import React, {FormEvent, useState, useEffect} from 'react';
-import {Link, useNavigate, useLocation} from 'react-router-dom';
+import React, {FormEvent, useEffect, useState} from 'react';
+import {Link, useLocation, useNavigate} from 'react-router-dom';
 import styled from 'styled-components';
 import {useTranslation} from 'react-i18next';
 import {Layout} from '@/components/Layout';
 import useAuthStore from '@/store/authStore';
 import {FiAlertTriangle, FiLock, FiUser} from 'react-icons/fi';
-import {SiTencentqq} from 'react-icons/si';
 
 // Social login type constant for URL parameter
 const QQ_SOCIAL_TYPE = 1;
@@ -17,11 +16,11 @@ const LoginPage: React.FC = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const {
-        login, 
-        isLoading, 
-        error, 
-        isAuthenticated, 
-        clearErrors, 
+        login,
+        isLoading,
+        error,
+        isAuthenticated,
+        clearErrors,
         qqLogin,
         getQQAuthorizeUrl
     } = useAuthStore();
@@ -47,12 +46,12 @@ const LoginPage: React.FC = () => {
             const state = params.get('state');
             const error = params.get('error');
             const socialTypeParam = params.get('social_type');
-            
+
             if (error) {
                 console.error('QQ login error:', error);
                 return;
             }
-            
+
             if (code && state && socialTypeParam && parseInt(socialTypeParam, 10) === QQ_SOCIAL_TYPE) {
                 try {
                     await qqLogin(code, state);
@@ -62,7 +61,7 @@ const LoginPage: React.FC = () => {
                 }
             }
         };
-        
+
         handleQQCallback();
     }, [location, qqLogin, navigate]);
 
@@ -88,9 +87,9 @@ const LoginPage: React.FC = () => {
 
             // The redirect URI should point back to this login page
             const redirectUri = `${window.location.origin}/login?social_type=${QQ_SOCIAL_TYPE}`;
-            
+
             const authorizeUrl = await getQQAuthorizeUrl(redirectUri);
-            
+
             if (authorizeUrl) {
                 // Redirect to the authorization URL
                 window.location.href = authorizeUrl;
@@ -151,20 +150,20 @@ const LoginPage: React.FC = () => {
                         {isLoading ? t('logging_in') : t('login')}
                     </SubmitButton>
 
-                    <Divider>
-                        <DividerText>{t('or')}</DividerText>
-                    </Divider>
+                    {/*<Divider>*/}
+                    {/*    <DividerText>{t('or')}</DividerText>*/}
+                    {/*</Divider>*/}
 
-                    <SocialButtons>
-                        <SocialButton 
-                            type="button" 
-                            onClick={handleQQLogin} 
-                            disabled={isLoading}
-                        >
-                            <SiTencentqq />
-                            <span>{t('login_with_qq')}</span>
-                        </SocialButton>
-                    </SocialButtons>
+                    {/*<SocialButtons>*/}
+                    {/*    <SocialButton */}
+                    {/*        type="button" */}
+                    {/*        onClick={handleQQLogin} */}
+                    {/*        disabled={isLoading}*/}
+                    {/*    >*/}
+                    {/*        <SiTencentqq />*/}
+                    {/*        <span>{t('login_with_qq')}</span>*/}
+                    {/*    </SocialButton>*/}
+                    {/*</SocialButtons>*/}
 
                     <FormFooter>
                         <span>{t('no_account')}</span>

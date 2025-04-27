@@ -239,42 +239,66 @@ const useConversationStore = create<ConversationStore>((set, get) => ({
                 throw new Error('Message not found');
             }
 
-            // Create updated message request
-            const updatedMessage = {
-                conversationId: message.conversationId,
-                configId: message.configId,
-                role: message.role,
-                content: content,
-                thinkingText: message.thinkingText === null ? undefined : message.thinkingText
-            };
+            // Find this message's index to determine which messages should be truncated
+            const messageIndex = state.messages.findIndex(m => m.id === id);
 
-            // Update the message through API
-            const result = await apiService.messages.createMessage(updatedMessage);
+            // First immediately update the message in the UI with the new content
+            // And truncate all messages that come after it
+            set(state => ({
+                messages: state.messages
+                    .slice(0, messageIndex + 1)
+                    .map(m => m.id === id ? {...m, content} : m)
+            }));
 
-            // If it's a user message, we may need to delete subsequent messages
+            // If it's a user message, we need to add a temporary loading response
+            // since the server will generate a new assistant response
             if (message.role === 'user') {
-                // Find this message's index
-                const messageIndex = state.messages.findIndex(m => m.id === id);
+                // Get the config name for display purposes
+                const configStore = useConfigStore.getState();
+                const config = configStore.configs.find(c => c.id === message.configId);
+                const configName = config?.name || '';
 
-                // Get messages that came after this one
-                const laterMessages = state.messages.slice(messageIndex + 1);
+                // Create temporary assistant message with loading state
+                const tempAssistantMessage: Message = {
+                    id: Date.now(), // Temporary ID
+                    conversationId: message.conversationId,
+                    configId: message.configId,
+                    configName,
+                    role: 'assistant',
+                    content: '',
+                    thinkingText: 'loading',
+                    createTime: getFormattedCurrentTime()
+                };
 
-                // Delete those messages
-                for (const msg of laterMessages) {
-                    try {
-                        await apiService.messages.deleteMessage(msg.id);
-                    } catch (err) {
-                        console.error(`Failed to delete message ${msg.id}`, err);
-                    }
-                }
-
-                // Update state - keep only messages up to the edited one, plus the edited one
+                // Update state with the temporary assistant message
+                // This keeps the edited message and adds the temporary loading response
                 set(state => ({
-                    messages: [...state.messages.slice(0, messageIndex), result],
+                    messages: [...state.messages, tempAssistantMessage]
+                }));
+            }
+
+            // Use the renameMessage API endpoint that handles everything on the server
+            // The backend will also truncate messages after the renamed one
+            const result = await apiService.messages.renameMessage(id, content);
+
+            if (message.role === 'user') {
+                // Handle the case when a user message was renamed
+                // The result will be the AI response message
+                set(state => ({
+                    messages: [
+                        ...state.messages.filter(
+                            // Keep only messages up to the renamed message
+                            // and exclude any temporary assistant messages
+                            m => m.id <= id ||
+                                (m.role === 'assistant' && m.id < Date.now() - 60000)
+                        ),
+                        result // Add the AI response from the API
+                    ],
                     isLoading: false
                 }));
             } else {
-                // Just update this message
+                // Just update this message if it's not a user message
+                // No assistant response is generated in this case
                 set(state => ({
                     messages: state.messages.map(m => m.id === id ? result : m),
                     isLoading: false

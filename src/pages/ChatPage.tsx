@@ -26,16 +26,8 @@ const ChatPage: React.FC = () => {
         error
     } = useConversationStore();
 
-    const {currentConfig, fetchConfigs} = useConfigStore();
+    const {currentConfig} = useConfigStore();
     const {preference} = usePreferenceStore();
-
-    useEffect(() => {
-        // Fetch configs first to ensure we have one selected
-        fetchConfigs().catch(err => {
-            console.error('Failed to fetch configs:', err);
-            setLocalError(t('config_fetch_error'));
-        });
-    }, [fetchConfigs, t]);
 
     useEffect(() => {
         if (id) {
@@ -72,12 +64,20 @@ const ChatPage: React.FC = () => {
     };
 
     const handleRenameMessage = async (id: number, content: string) => {
+        if (!currentConversation) {
+            setLocalError(t('no_conversation_selected'));
+            return;
+        }
+
         try {
+            // The UI will show a temporary message immediately
+            // The actual update is handled by the store
             await renameMessage(id, content);
             setLocalError(null); // Clear any previous errors on success
         } catch (err) {
             console.error('Failed to rename message:', err);
             setLocalError(err instanceof Error ? err.message : t('message_rename_error'));
+            throw err; // Propagate error back to component for UI handling
         }
     };
 

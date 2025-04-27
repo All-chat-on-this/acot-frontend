@@ -184,7 +184,7 @@ const ActionIcon = styled.div`
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: ${({theme}) => theme.colors.hover};
+    background-color: ${({theme}) => theme.colors.card};
     border-radius: 50%;
     margin-bottom: 16px;
     color: ${({theme}) => theme.colors.primary};

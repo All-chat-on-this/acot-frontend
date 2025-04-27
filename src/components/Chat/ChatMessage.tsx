@@ -3,8 +3,8 @@ import styled from 'styled-components';
 import ReactMarkdown from 'react-markdown';
 import {useTranslation} from 'react-i18next';
 import {AnimatePresence, motion} from 'framer-motion';
-import {FiCheck, FiEdit2, FiEye, FiEyeOff, FiX} from 'react-icons/fi';
-import {colorTransition} from '@/styles/animations';
+import {FiCheck, FiEdit2, FiEye, FiEyeOff, FiLoader, FiX} from 'react-icons/fi';
+import {colorTransition, spinner} from '@/styles/animations';
 import useAuthStore from "@/store/authStore.ts";
 import {Message} from "@/api/type/modelApi.ts";
 
@@ -35,6 +35,8 @@ const ChatMessage: React.FC<ChatMessageProps> = ({message, showThinking, onRenam
     const [showThinkingText, setShowThinkingText] = useState(showThinking);
     const [isEditing, setIsEditing] = useState(false);
     const [editValue, setEditValue] = useState('');
+    const [isSaving, setIsSaving] = useState(false);
+    const [tempContent, setTempContent] = useState<string | null>(null);
 
     const toggleThinkingText = () => {
         setShowThinkingText(!showThinkingText);
@@ -47,17 +49,38 @@ const ChatMessage: React.FC<ChatMessageProps> = ({message, showThinking, onRenam
 
     const cancelEditing = () => {
         setIsEditing(false);
+        setIsSaving(false);
     };
 
     const saveEditing = async () => {
         if (onRename && editValue.trim() !== message.content) {
+            // Confirm with the user that they understand subsequent messages will be removed
+            const confirmed = window.confirm(t('confirm_rename_truncate'));
+            if (!confirmed) {
+                return; // User canceled the operation
+            }
+
+            setIsSaving(true);
+
+            // Set temporary content immediately for better UX
+            setTempContent(editValue.trim());
+            setIsEditing(false);
+            
             try {
                 await onRename(message.id, editValue.trim());
+                // After successful API call, we'll let the parent component update the actual message
             } catch (error) {
                 console.error('Failed to rename message:', error);
+                // On error, revert to original content and re-enable editing
+                setTempContent(null);
+                setIsEditing(true);
+            } finally {
+                setIsSaving(false);
             }
+        } else {
+            // No changes or no rename handler
+            setIsEditing(false);
         }
-        setIsEditing(false);
     };
 
     const isUser = message.role === 'user';
@@ -88,6 +111,9 @@ const ChatMessage: React.FC<ChatMessageProps> = ({message, showThinking, onRenam
         }
     };
 
+    // Use temporary content if available, otherwise use the original message content
+    const displayContent = tempContent !== null ? tempContent : message.content;
+
     return (
         <MessageContainer className={`role-${message.role} ${isEditing ? 'editing' : ''}`}>
             <motion.div
@@ -96,7 +122,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({message, showThinking, onRenam
                 animate="animate"
                 whileHover="hover"
                 style={{
-                    width: isUser ? (isEditing ? '100%' : '80%') : isSystem ? '100%' : '80%',
+                    width: isUser ? (isEditing ? '100%' : 'auto') : isSystem ? '100%' : 'auto',
                     marginLeft: isUser ? (isEditing ? '0' : 'auto') : 'initial',
                     marginRight: isUser ? '0' : 'initial',
                     display: 'inline-block'
@@ -108,7 +134,8 @@ const ChatMessage: React.FC<ChatMessageProps> = ({message, showThinking, onRenam
                         isAssistant && 'assistant',
                         isSystem && 'system',
                         isEditing && 'editing',
-                        hasThinkingText && message.thinkingText === 'loading' && 'loading'
+                        hasThinkingText && message.thinkingText === 'loading' && 'loading',
+                        isSaving && 'saving'
                     ].filter(Boolean).join(' ')}
                 >
                     {isAssistant && (
@@ -130,15 +157,22 @@ const ChatMessage: React.FC<ChatMessageProps> = ({message, showThinking, onRenam
                     {isUser && (
                         <MessageHeader>
                             <MessageRole>{user?.nickname}</MessageRole>
-                            {onRename && !isEditing && (
+                            {onRename && !isEditing && !isSaving && (
                                 <EditButton
                                     onClick={startEditing}
                                     whileHover={{scale: 1.1}}
                                     whileTap={{scale: 0.9}}
+                                    title={t('rename_message_tooltip')}
                                 >
                                     <FiEdit2 size={14}/>
                                     <span>Edit</span>
                                 </EditButton>
+                            )}
+                            {isSaving && (
+                                <SavingIndicator>
+                                    <FiLoader size={14}/>
+                                    <span>{t('saving')}</span>
+                                </SavingIndicator>
                             )}
                         </MessageHeader>
                     )}
@@ -180,7 +214,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({message, showThinking, onRenam
                                 <LoadingDots/>
                             </LoadingAnimation>
                         ) : (
-                            <ReactMarkdown>{message.content}</ReactMarkdown>
+                            <ReactMarkdown>{displayContent}</ReactMarkdown>
                         )}
                     </MessageText>
 
@@ -198,8 +232,15 @@ const ChatMessage: React.FC<ChatMessageProps> = ({message, showThinking, onRenam
                         )}
                     </AnimatePresence>
 
-                    <MessageTime>
-                        {message.updateTime || message.createTime}
+                    <MessageTime className={isSaving ? 'saving' : ''}>
+                        {isSaving ? (
+                            <>
+                                <FiLoader size={10}/>
+                                {t('saving_changes')}
+                            </>
+                        ) : (
+                            message.updateTime || message.createTime
+                        )}
                     </MessageTime>
                 </MessageContent>
             </motion.div>
@@ -241,6 +282,10 @@ const MessageContent = styled.div`
             max-width: 90%;
             margin-left: 0;
             margin-right: 0;
+        }
+
+        &.saving {
+            opacity: 0.8;
         }
     }
 
@@ -325,6 +370,19 @@ const EditButton = styled(motion.button)`
     }
 `;
 
+const SavingIndicator = styled.div`
+    display: flex;
+    align-items: center;
+    font-size: 0.75rem;
+    color: inherit;
+    opacity: 0.7;
+
+    svg {
+        animation: ${spinner} 1s linear infinite;
+        margin-right: 4px;
+    }
+`;
+
 const MessageText = styled.div`
     line-height: 1.5;
     padding: 0 4px;
@@ -371,6 +429,18 @@ const MessageTime = styled.div`
     opacity: 0.6;
     text-align: right;
     margin-top: 4px;
+
+    &.saving {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+
+        svg {
+            animation: ${spinner} 1s linear infinite;
+            margin-right: 4px;
+            font-size: 0.7rem;
+        }
+    }
 `;
 
 const EditContainer = styled.div`

@@ -81,6 +81,9 @@ const zhTranslation = {
     hide_thinking_process: '隐藏思考过程',
     show_thinking_process: '显示思考过程',
     api_configuration: 'API配置',
+    rename_message_tooltip: '编辑消息（将移除所有后续消息）',
+    confirm_rename_truncate: '编辑此消息将移除对话中的所有后续消息。是否继续？',
+    saving_changes: '保存更改中...',
 
     // Config
     api_configs: 'API配置',

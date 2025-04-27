@@ -81,6 +81,9 @@ const enTranslation = {
     hide_thinking_process: 'Hide thinking process',
     show_thinking_process: 'Show thinking process',
     api_configuration: 'API Configuration',
+    rename_message_tooltip: 'Edit message (will remove all subsequent messages)',
+    confirm_rename_truncate: 'Editing this message will remove all following messages in the conversation. Continue?',
+    saving_changes: 'Saving changes...',
 
     // Config
     api_configs: 'API Configurations',
