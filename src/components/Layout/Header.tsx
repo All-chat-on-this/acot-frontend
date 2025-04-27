@@ -37,14 +37,14 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar}) => {
         <HeaderContainer>
             <HeaderContent className={isDreamlikeColor ? 'glass-effect' : ''}>
                 <LogoContainer>
-                    <MobileMenuButton
+                    <MenuButton
                         onClick={onToggleSidebar}
                         whileHover={{scale: 1.1}}
                         whileTap={{scale: 0.9}}
                         className="sidebar-toggle"
                     >
                         <FiMenu size={24}/>
-                    </MobileMenuButton>
+                    </MenuButton>
                     <Logo
                         to="/"
                         whileHover={{
@@ -169,8 +169,8 @@ const Logo = styled(motion(Link))`
     transition: ${colorTransition};
 `;
 
-const MobileMenuButton = styled(motion.button)`
-    display: none;
+const MenuButton = styled(motion.button)`
+    display: flex;
     background: none;
     border: none;
     color: ${({theme}) => theme.colors.text};
@@ -181,14 +181,6 @@ const MobileMenuButton = styled(motion.button)`
 
     &:hover {
         background-color: rgba(255, 255, 255, 0.1);
-    }
-
-    @media (max-width: 991px) {
-        display: flex;
-
-        &.sidebar-toggle {
-            display: flex;
-        }
     }
 `;
 

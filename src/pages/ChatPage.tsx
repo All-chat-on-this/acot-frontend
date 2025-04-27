@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
 import styled from 'styled-components';
 import {useTranslation} from 'react-i18next';
@@ -15,6 +15,7 @@ const ChatPage: React.FC = () => {
     const {id} = useParams<{ id: string }>();
     const navigate = useNavigate();
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const [localError, setLocalError] = useState<string | null>(null);
 
     const {
         fetchConversation,
@@ -31,40 +32,53 @@ const ChatPage: React.FC = () => {
 
     useEffect(() => {
         // Fetch configs first to ensure we have one selected
-        fetchConfigs();
-    }, [fetchConfigs]);
+        fetchConfigs().catch(err => {
+            console.error('Failed to fetch configs:', err);
+            setLocalError(t('config_fetch_error'));
+        });
+    }, [fetchConfigs, t]);
 
     useEffect(() => {
         if (id) {
-            fetchConversation(Number(id));
+            fetchConversation(Number(id)).catch(err => {
+                console.error('Failed to fetch conversation:', err);
+                setLocalError(err.message || t('conversation_fetch_error'));
+            });
         }
-    }, [id, fetchConversation]);
+    }, [id, fetchConversation, t]);
 
     useEffect(() => {
         // Scroll to bottom when messages change
         messagesEndRef.current?.scrollIntoView({behavior: 'smooth'});
     }, [messages]);
 
-    const handleSendMessage = (content: string) => {
+    const handleSendMessage = async (content: string) => {
         if (!currentConfig) {
-            alert(t('configure_api_first'));
-            navigate('/config');
+            setLocalError(t('configure_api_first'));
             return;
         }
 
         if (!currentConversation) {
-            alert(t('no_conversation_selected'));
+            setLocalError(t('no_conversation_selected'));
             return;
         }
 
-        sendMessage(content, currentConfig.id);
+        try {
+            await sendMessage(content, currentConfig.id);
+            setLocalError(null); // Clear any previous errors on success
+        } catch (err) {
+            console.error('Send message error:', err);
+            setLocalError(err instanceof Error ? err.message : t('message_send_error'));
+        }
     };
 
     const handleRenameMessage = async (id: number, content: string) => {
         try {
             await renameMessage(id, content);
-        } catch (error) {
-            console.error('Failed to rename message:', error);
+            setLocalError(null); // Clear any previous errors on success
+        } catch (err) {
+            console.error('Failed to rename message:', err);
+            setLocalError(err instanceof Error ? err.message : t('message_rename_error'));
         }
     };
 
@@ -151,15 +165,17 @@ const ChatPage: React.FC = () => {
                         )}
                     </AnimatePresence>
 
-                    {error && (
-                        <ErrorMessage
-                            initial={{opacity: 0, y: 20}}
-                            animate={{opacity: 1, y: 0}}
-                            exit={{opacity: 0, y: -20}}
-                        >
-                            {error}
-                        </ErrorMessage>
-                    )}
+                    <AnimatePresence>
+                        {(error || localError) && (
+                            <ErrorMessage
+                                initial={{opacity: 0, y: 20}}
+                                animate={{opacity: 1, y: 0}}
+                                exit={{opacity: 0, y: -20}}
+                            >
+                                {error || localError}
+                            </ErrorMessage>
+                        )}
+                    </AnimatePresence>
                 </MessagesContainer>
 
                 <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading}/>

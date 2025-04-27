@@ -1,6 +1,8 @@
 import {create} from 'zustand';
 import apiService from '@/api/apiService';
 import {Conversation, ConversationCreateOrUpdateRequest, Message, SendMessageRequest} from '@/api/type/modelApi';
+import {AxiosError} from 'axios';
+import {CommonResult} from '@/types';
 
 interface ConversationState {
     conversations: Conversation[];
@@ -8,8 +10,6 @@ interface ConversationState {
     messages: Message[];
     isLoading: boolean;
     error: string | null;
-
-
 }
 
 interface ConversationStore extends ConversationState {
@@ -24,26 +24,22 @@ interface ConversationStore extends ConversationState {
     setConversations: (conversations: Conversation[]) => void;
 }
 
-// For development/demo purposes
-const demoConversations: Conversation[] = [
-    {
-        id: 1,
-        title: 'Conversation about AI ethics',
-        createTime: new Date().toISOString(),
-        updateTime: new Date().toISOString(),
-        userId: 1
-    },
-    {
-        id: 2,
-        title: 'Technical discussion',
-        createTime: new Date().toISOString(),
-        updateTime: new Date().toISOString(),
-        userId: 1
+// Helper function to handle API errors consistently
+const handleApiError = (error: unknown, errorMessage: string): never => {
+    // Extract meaningful error message if available
+    let message = errorMessage;
+    if (error instanceof AxiosError && error.response?.data) {
+        const data = error.response.data as CommonResult<unknown>;
+        message = data.msg || errorMessage;
+    } else if (error instanceof Error) {
+        message = `${errorMessage}: ${error.message}`;
     }
-];
+    console.error(message, error);
+    throw new Error(message);
+};
 
 const useConversationStore = create<ConversationStore>((set, get) => ({
-    conversations: [...demoConversations],
+    conversations: [],
     currentConversation: null,
     messages: [],
     isLoading: false,
@@ -52,13 +48,13 @@ const useConversationStore = create<ConversationStore>((set, get) => ({
     fetchConversations: async () => {
         set({isLoading: true, error: null});
         try {
-            // Use the proper service method from modelApi.ts
             const conversations = await apiService.conversations.getConversations();
             set({conversations, isLoading: false});
             return conversations;
         } catch (error) {
-            console.error('Failed to fetch conversations:', error);
-            set({error: 'Failed to fetch conversations', isLoading: false});
+            const errorMsg = 'Failed to fetch conversations';
+            set({error: errorMsg, isLoading: false});
+            console.error(errorMsg, error);
             return [];
         }
     },
@@ -67,15 +63,17 @@ const useConversationStore = create<ConversationStore>((set, get) => ({
         set({isLoading: true, error: null});
         try {
             // Get conversation and messages concurrently
-            const conversation = await apiService.conversations.getConversation(id);
-            const messages = await apiService.messages.getMessages(id);
+            const [conversation, messages] = await Promise.all([
+                apiService.conversations.getConversation(id),
+                apiService.messages.getMessages(id)
+            ]);
 
             set({currentConversation: conversation, messages, isLoading: false});
             return conversation;
         } catch (error) {
-            console.error('Failed to fetch conversation:', error);
-            set({error: 'Failed to fetch conversation', isLoading: false});
-            throw error;
+            const errorMsg = `Failed to fetch conversation #${id}`;
+            set({error: errorMsg, isLoading: false});
+            return handleApiError(error, errorMsg);
         }
     },
 
@@ -94,9 +92,9 @@ const useConversationStore = create<ConversationStore>((set, get) => ({
 
             return newConversation;
         } catch (error) {
-            console.error('Failed to create conversation:', error);
-            set({error: 'Failed to create conversation', isLoading: false});
-            throw error;
+            const errorMsg = 'Failed to create conversation';
+            set({error: errorMsg, isLoading: false});
+            return handleApiError(error, errorMsg);
         }
     },
 
@@ -121,27 +119,31 @@ const useConversationStore = create<ConversationStore>((set, get) => ({
 
             return updatedConversation;
         } catch (error) {
-            console.error('Failed to update conversation:', error);
-            set({error: 'Failed to update conversation', isLoading: false});
-            throw error;
+            const errorMsg = `Failed to update conversation #${id}`;
+            set({error: errorMsg, isLoading: false});
+            return handleApiError(error, errorMsg);
         }
     },
 
     deleteConversation: async (id: number) => {
         set({isLoading: true, error: null});
         try {
-            await apiService.conversations.deleteConversation(id);
+            const success = await apiService.conversations.deleteConversation(id);
 
-            set(state => ({
-                conversations: state.conversations.filter(c => c.id !== id),
-                currentConversation: state.currentConversation?.id === id ? null : state.currentConversation,
-                messages: state.currentConversation?.id === id ? [] : state.messages,
-                isLoading: false
-            }));
+            if (success) {
+                set(state => ({
+                    conversations: state.conversations.filter(c => c.id !== id),
+                    currentConversation: state.currentConversation?.id === id ? null : state.currentConversation,
+                    messages: state.currentConversation?.id === id ? [] : state.messages,
+                    isLoading: false
+                }));
+            } else {
+                throw new Error(`Delete operation did not return success`);
+            }
         } catch (error) {
-            console.error('Failed to delete conversation:', error);
-            set({error: 'Failed to delete conversation', isLoading: false});
-            throw error;
+            const errorMsg = `Failed to delete conversation #${id}`;
+            set({error: errorMsg, isLoading: false});
+            return handleApiError(error, errorMsg);
         }
     },
 
@@ -183,9 +185,9 @@ const useConversationStore = create<ConversationStore>((set, get) => ({
 
             return responseMessage;
         } catch (error) {
-            console.error('Failed to send message:', error);
-            set({error: 'Failed to send message', isLoading: false});
-            throw error;
+            const errorMsg = 'Failed to send message';
+            set({error: errorMsg, isLoading: false});
+            return handleApiError(error, errorMsg);
         }
     },
 
@@ -243,25 +245,29 @@ const useConversationStore = create<ConversationStore>((set, get) => ({
 
             return result;
         } catch (error) {
-            console.error('Failed to rename message:', error);
-            set({error: 'Failed to rename message', isLoading: false});
-            throw error;
+            const errorMsg = `Failed to rename message #${id}`;
+            set({error: errorMsg, isLoading: false});
+            return handleApiError(error, errorMsg);
         }
     },
 
     deleteMessage: async (id: number) => {
         set({isLoading: true, error: null});
         try {
-            await apiService.messages.deleteMessage(id);
+            const success = await apiService.messages.deleteMessage(id);
 
-            set(state => ({
-                messages: state.messages.filter(m => m.id !== id),
-                isLoading: false
-            }));
+            if (success) {
+                set(state => ({
+                    messages: state.messages.filter(m => m.id !== id),
+                    isLoading: false
+                }));
+            } else {
+                throw new Error(`Delete operation did not return success`);
+            }
         } catch (error) {
-            console.error('Failed to delete message:', error);
-            set({error: 'Failed to delete message', isLoading: false});
-            throw error;
+            const errorMsg = `Failed to delete message #${id}`;
+            set({error: errorMsg, isLoading: false});
+            return handleApiError(error, errorMsg);
         }
     },
 

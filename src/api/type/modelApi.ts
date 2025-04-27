@@ -1,4 +1,5 @@
 import apiClient from '../apiClient';
+import {CommonResult} from '@/types';
 
 // Conversation Types
 export interface Conversation {
@@ -69,32 +70,32 @@ export interface MessageService {
 // Conversation Implementation
 export const conversationService: ConversationService = {
     getConversations: async (): Promise<Conversation[]> => {
-        const response = await apiClient.get('/conversation/getConversations');
+        const response = await apiClient.get<CommonResult<Conversation[]>>('/conversation/getConversations');
         return response.data.data;
     },
 
     getConversationPage: async (params: ConversationPageRequest): Promise<PageResult<Conversation>> => {
-        const response = await apiClient.get('/conversation/page', {params});
+        const response = await apiClient.get<CommonResult<PageResult<Conversation>>>('/conversation/page', {params});
         return response.data.data;
     },
 
     getConversation: async (id: number): Promise<Conversation> => {
-        const response = await apiClient.get(`/conversation/${id}`);
+        const response = await apiClient.get<CommonResult<Conversation>>(`/conversation/${id}`);
         return response.data.data;
     },
 
     createConversation: async (data: ConversationCreateOrUpdateRequest): Promise<Conversation> => {
-        const response = await apiClient.post('/conversation/createConversation', data);
+        const response = await apiClient.post<CommonResult<Conversation>>('/conversation/createConversation', data);
         return response.data.data;
     },
 
     updateConversation: async (id: number, data: ConversationCreateOrUpdateRequest): Promise<Conversation> => {
-        const response = await apiClient.put(`/conversation/updateConversation/${id}`, data);
+        const response = await apiClient.put<CommonResult<Conversation>>(`/conversation/updateConversation/${id}`, data);
         return response.data.data;
     },
 
     deleteConversation: async (id: number): Promise<boolean> => {
-        const response = await apiClient.delete(`/conversation/conversations/${id}`);
+        const response = await apiClient.delete<CommonResult<boolean>>(`/conversation/conversations/${id}`);
         return response.data.data;
     }
 };
@@ -102,34 +103,34 @@ export const conversationService: ConversationService = {
 // Message Implementation
 export const messageService: MessageService = {
     getMessages: async (conversationId: number): Promise<Message[]> => {
-        const response = await apiClient.get('/conversation/message/getMessages', {
+        const response = await apiClient.get<CommonResult<Message[]>>('/conversation/message/getMessages', {
             params: {conversationId}
         });
         return response.data.data;
     },
 
     getMessage: async (id: number): Promise<Message> => {
-        const response = await apiClient.get(`/conversation/message/${id}`);
+        const response = await apiClient.get<CommonResult<Message>>(`/conversation/message/${id}`);
         return response.data.data;
     },
 
     createMessage: async (data: MessageCreateRequest): Promise<Message> => {
-        const response = await apiClient.post('/conversation/message/createMessage', data);
+        const response = await apiClient.post<CommonResult<Message>>('/conversation/message/createMessage', data);
         return response.data.data;
     },
 
     sendMessage: async (data: SendMessageRequest): Promise<Message> => {
-        const response = await apiClient.post('/conversation/message/sendMessage', data);
+        const response = await apiClient.post<CommonResult<Message>>('/conversation/message/sendMessage', data);
         return response.data.data;
     },
 
     deleteMessage: async (id: number): Promise<boolean> => {
-        const response = await apiClient.delete(`/conversation/message/${id}`);
+        const response = await apiClient.delete<CommonResult<boolean>>(`/conversation/message/${id}`);
         return response.data.data;
     },
 
     deleteConversationMessages: async (conversationId: number): Promise<boolean> => {
-        const response = await apiClient.delete(`/conversation/message/conversation/${conversationId}`);
+        const response = await apiClient.delete<CommonResult<boolean>>(`/conversation/message/conversation/${conversationId}`);
         return response.data.data;
     }
 };

@@ -11,11 +11,18 @@ import apiService from '@/api/apiService';
 import {ConversationPageRequest} from '@/api/type/modelApi';
 
 interface SidebarProps {
+    isOpen?: boolean;
     isMobileOpen?: boolean;
+    onClose?: () => void;
     onMobileClose?: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({isMobileOpen, onMobileClose}) => {
+const Sidebar: React.FC<SidebarProps> = ({
+                                             isOpen = true,
+                                             isMobileOpen,
+                                             onClose,
+                                             onMobileClose
+                                         }) => {
     const {t} = useTranslation();
     const {conversations, createConversation, updateConversation, setConversations} = useConversationStore();
     const {preference} = usePreferenceStore();
@@ -33,6 +40,7 @@ const Sidebar: React.FC<SidebarProps> = ({isMobileOpen, onMobileClose}) => {
     const pageSize = 20;
 
     const isGlassEffect = preference.theme === 'dreamlikeColorLight' || preference.theme === 'dreamlikeColorDark';
+    const isMobile = window.innerWidth < 992;
 
     // Initial data load
     useEffect(() => {
@@ -109,18 +117,20 @@ const Sidebar: React.FC<SidebarProps> = ({isMobileOpen, onMobileClose}) => {
 
             const result = await apiService.conversations.getConversationPage(params);
 
-            const newConversations = result.list;
-
+            // Check if result exists and has list property
+            const newConversations = result?.list || [];
+            
             if (resetList) {
                 setConversations(newConversations);
-                setHasMore(result.total > newConversations.length);
+                setHasMore(newConversations.length > 0 && result.total > newConversations.length);
             } else {
                 setConversations([...conversations, ...newConversations]);
-                setHasMore(result.total > conversations.length + newConversations.length);
+                setHasMore(newConversations.length > 0 && result.total > conversations.length + newConversations.length);
             }
             setCurrentPage(page);
         } catch (error) {
             console.error('Failed to load conversations:', error);
+            // Optional: Show error toast or notification to user
         } finally {
             setIsLoading(false);
         }
@@ -136,6 +146,8 @@ const Sidebar: React.FC<SidebarProps> = ({isMobileOpen, onMobileClose}) => {
     const handleNewConversation = async () => {
         try {
             const newConversation = await createConversation(t('new_conversation'));
+            setEditingConversationId(null);
+            setEditTitle('');
             navigate(`/chat/${newConversation.id}`);
         } catch (error) {
             console.error('Failed to create new conversation:', error);
@@ -167,13 +179,21 @@ const Sidebar: React.FC<SidebarProps> = ({isMobileOpen, onMobileClose}) => {
     };
 
     const handleNavigation = () => {
-        if (onMobileClose) {
+        if (isMobile && onMobileClose) {
             onMobileClose();
         }
     };
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTerm(e.target.value);
+    };
+
+    const handleCloseSidebar = () => {
+        if (isMobile && onMobileClose) {
+            onMobileClose();
+        } else if (onClose) {
+            onClose();
+        }
     };
 
     // Animation variants
@@ -212,10 +232,13 @@ const Sidebar: React.FC<SidebarProps> = ({isMobileOpen, onMobileClose}) => {
         })
     };
 
+    // Determine if sidebar should be shown based on screen size and props
+    const shouldShowSidebar = (isMobile && isMobileOpen) || (!isMobile && isOpen);
+
     return (
         <>
             <AnimatePresence mode="wait">
-                {(isMobileOpen || window.innerWidth >= 992) && (
+                {shouldShowSidebar && (
                     <SidebarContainer
                         className={isGlassEffect ? 'glass-effect' : ''}
                         initial="hidden"
@@ -235,11 +258,9 @@ const Sidebar: React.FC<SidebarProps> = ({isMobileOpen, onMobileClose}) => {
                                     {isLoading ? <SearchingIndicator/> : <FiSearch/>}
                                 </SearchIcon>
                             </SearchContainer>
-                            {onMobileClose && (
-                                <CloseButton onClick={onMobileClose}>
-                                    <FiX size={24}/>
-                                </CloseButton>
-                            )}
+                            <CloseButton onClick={handleCloseSidebar}>
+                                <FiX size={24}/>
+                            </CloseButton>
                         </SidebarHeader>
 
                         <NewConversationButton
@@ -340,14 +361,13 @@ const SidebarContainer = styled(motion.aside)`
     position: fixed;
     top: 60px;
     left: 0;
-    width: 250px;
+    width: 270px;
     height: calc(100vh - 60px);
     background-color: ${({theme}) => theme.colors.sidebar};
     border-right: 1px solid ${({theme}) => theme.colors.border};
     display: flex;
     flex-direction: column;
     z-index: 996;
-    overflow-y: auto;
     box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
 
     &.glass-effect {
@@ -370,7 +390,6 @@ const SidebarContainer = styled(motion.aside)`
     }
 
     @media (max-width: 991px) {
-        width: 280px;
         box-shadow: 4px 0 12px rgba(0, 0, 0, 0.15);
     }
 `;

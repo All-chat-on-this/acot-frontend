@@ -1,6 +1,5 @@
 import React, {ReactNode, useState} from 'react';
 import styled from 'styled-components';
-import {AnimatePresence} from 'framer-motion';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import useAuthStore from '@/store/authStore';
@@ -13,10 +12,20 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({children, showSidebar = true}) => {
     const {isAuthenticated} = useAuthStore();
+    const [sidebarOpen, setSidebarOpen] = useState(true);
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-    const toggleMobileSidebar = () => {
-        setMobileSidebarOpen(!mobileSidebarOpen);
+    const toggleSidebar = () => {
+        const isMobile = window.innerWidth < 992;
+        if (isMobile) {
+            setMobileSidebarOpen(!mobileSidebarOpen);
+        } else {
+            setSidebarOpen(!sidebarOpen);
+        }
+    };
+
+    const closeSidebar = () => {
+        setSidebarOpen(false);
     };
 
     const closeMobileSidebar = () => {
@@ -25,29 +34,23 @@ const Layout: React.FC<LayoutProps> = ({children, showSidebar = true}) => {
 
     return (
         <LayoutContainer className={showSidebar ? 'with-sidebar' : ''}>
-            <Header onToggleSidebar={toggleMobileSidebar}/>
+            <Header onToggleSidebar={toggleSidebar}/>
 
             <MainContent>
                 {isAuthenticated && showSidebar && (
-                    <>
-                        {/* Desktop Sidebar */}
-                        <DesktopSidebar>
-                            <Sidebar/>
-                        </DesktopSidebar>
-
-                        {/* Mobile Sidebar */}
-                        <AnimatePresence>
-                            <MobileSidebar>
-                                <Sidebar
-                                    isMobileOpen={mobileSidebarOpen}
-                                    onMobileClose={closeMobileSidebar}
-                                />
-                            </MobileSidebar>
-                        </AnimatePresence>
-                    </>
+                    <SidebarWrapper style={{width: sidebarOpen ? '270px' : '0'}}>
+                        <Sidebar
+                            isOpen={sidebarOpen}
+                            isMobileOpen={mobileSidebarOpen}
+                            onClose={closeSidebar}
+                            onMobileClose={closeMobileSidebar}
+                        />
+                    </SidebarWrapper>
                 )}
 
-                <ContentArea className={`${isAuthenticated && showSidebar ? 'with-sidebar' : ''}`}>
+                <ContentArea
+                    className={`${isAuthenticated && showSidebar ? 'with-sidebar' : ''} ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}
+                >
                     {children}
                 </ContentArea>
             </MainContent>
@@ -68,32 +71,12 @@ const MainContent = styled.main`
     position: relative;
 `;
 
-const DesktopSidebar = styled.div`
-    display: block;
-    width: 250px;
+const SidebarWrapper = styled.div`
+    width: 270px;
     animation: ${fadeIn} 0.3s ease;
 
     @media (max-width: 991px) {
-        display: none;
-    }
-`;
-
-const MobileSidebar = styled.div`
-    display: none;
-
-    @media (max-width: 991px) {
-        display: block;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: 990;
-        pointer-events: none;
-
-        & > * {
-            pointer-events: auto;
-        }
+        width: 0;
     }
 `;
 
@@ -103,6 +86,7 @@ const ContentArea = styled.div`
     transition: margin-left 0.3s ease;
     overflow-x: hidden;
     animation: ${fadeIn} 0.3s ease;
+    position: relative;
 
     &.with-sidebar {
         @media (min-width: 992px) {
