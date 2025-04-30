@@ -41,6 +41,8 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
         createConfig,
         updateConfig,
         testConfig,
+        setCurrentConfigById,
+        fetchConfigs,
         testResult,
         error
     } = useConfigStore();
@@ -332,9 +334,15 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
             };
 
             if (currentConfig) {
+                // Update existing config
                 await updateConfig(currentConfig.id, configData);
+                // Config is already fetched and set as current in updateConfig
+                await setCurrentConfigById(currentConfig.id);
             } else {
-                await createConfig(configData);
+                // Create new config and explicitly set it as current
+                const newConfig = await createConfig(configData);
+                // createConfig already sets this as current in the store
+                await setCurrentConfigById(newConfig.id);
             }
 
             handleCancelEdit();
@@ -352,7 +360,7 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
         try {
             // Reset the successful test flag
             setHasSuccessfulTest(false);
-            
+
             // Parse JSON templates
             let requestTemplate = JSON.parse(formData.requestTemplate);
             const responseTemplate = JSON.parse(formData.responseTemplate);
@@ -367,7 +375,10 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
                 }
             }
 
+            console.log('currentConfig:' + JSON.stringify(currentConfig));
+
             const configData = {
+                id: currentConfig?.id, // Include ID if it's an existing config
                 name: formData.name,
                 apiUrl: formData.apiUrl,
                 apiKey: formData.apiKey,
@@ -388,6 +399,17 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
             };
 
             await testConfig(configData);
+
+            if (currentConfig) {
+                // Update the existing config with all form data fields
+                updateConfig(currentConfig.id, configData).then(() => {
+                    // Config is already fetched and set as current in updateConfig
+                    setCurrentConfigById(currentConfig.id);
+                });
+            }
+
+            // If it's an existing config, update its isAvailable status immediately after testing
+            // The result will be applied in useConfigStore's testConfig handler via the useEffect below
         } catch (error) {
             console.error('Failed to test configuration:', error);
             await dialog.alert({

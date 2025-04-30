@@ -55,8 +55,8 @@ const ChatPage: React.FC = () => {
         }
 
         try {
-            await sendMessage(content, currentConfig.id);
             setLocalError(null); // Clear any previous errors on success
+            await sendMessage(content, currentConfig.id);
         } catch (err) {
             console.error('Send message error:', err);
             setLocalError(err instanceof Error ? err.message : t('message_send_error'));

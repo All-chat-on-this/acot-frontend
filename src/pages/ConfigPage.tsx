@@ -33,6 +33,7 @@ const ConfigPage: React.FC = () => {
         configs,
         currentConfig,
         setCurrentConfig,
+        setCurrentConfigById,
         resetTestResult,
         isLoading
     } = useConfigStore();
@@ -55,11 +56,8 @@ const ConfigPage: React.FC = () => {
     };
 
     const handleSelectConfig = (configId: number) => {
-        const config = configs.find(c => c.id === configId);
-        if (config) {
-            setCurrentConfig(config);
-            resetTestResult();
-        }
+        setCurrentConfigById(configId);
+        resetTestResult();
     };
 
     const toggleApiKeyVisibility = () => {

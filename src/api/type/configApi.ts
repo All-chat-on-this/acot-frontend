@@ -40,7 +40,7 @@ export interface ConfigService {
 
     deleteConfig(id: number): Promise<boolean>;
 
-    testConfig(configData: ApiConfig): Promise<CommonResult<TestResult>>;
+    testConfig(configData: Omit<ApiConfig, 'userId' | 'isAvailable'>): Promise<CommonResult<TestResult>>;
 }
 
 export const configService: ConfigService = {
@@ -51,7 +51,7 @@ export const configService: ConfigService = {
 
     getConfig: async (id: number): Promise<ApiConfig> => {
         const response = await apiClient.get(`/config/${id}`);
-        return response.data;
+        return response.data.data;
     },
 
     createConfig: async (configData: Omit<ApiConfig, 'id' | 'userId' | 'isAvailable'>): Promise<ApiConfig> => {
@@ -69,7 +69,7 @@ export const configService: ConfigService = {
         return true;
     },
 
-    testConfig: async (configData: Omit<ApiConfig, 'id' | 'userId' | 'isAvailable'>): Promise<CommonResult<TestResult>> => {
+    testConfig: async (configData: Omit<ApiConfig, 'userId' | 'isAvailable'>): Promise<CommonResult<TestResult>> => {
         const response = await apiClient.post('/config/test', configData);
         return response.data;
     }

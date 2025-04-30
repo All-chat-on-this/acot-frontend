@@ -222,9 +222,38 @@ const useConversationStore = create<ConversationStore>((set, get) => ({
 
             return assistantResponse;
         } catch (error) {
-            const errorMsg = 'Failed to send message';
-            set({error: errorMsg, isLoading: false});
-            return handleApiError(error, errorMsg);
+            const errorMsg = 'Failed to send message: ' + (error instanceof Error ? error.message : error);
+
+            // Get the temporary messages we just added
+            const state = get();
+            const tempMessages = state.messages.slice(-2); // Get the last two messages
+            const tempUserMessage = tempMessages[0];
+            const tempAssistantMessage = tempMessages[1];
+
+            // Update the temporary assistant message with error content synchronously
+            const errorAssistantMessage: Message = {
+                ...tempAssistantMessage,
+                content: errorMsg,
+                role: 'system',
+                thinkingText: null
+            };
+
+            // Replace both temporary messages with error message
+            set(state => ({
+                messages: [
+                    ...state.messages.filter(
+                        m => m.id !== tempUserMessage.id && m.id !== tempAssistantMessage.id
+                    ),
+                    // Keep the user message but don't keep the assistant message
+                    tempUserMessage,
+                    errorAssistantMessage
+                ],
+                error: errorMsg,
+                isLoading: false
+            }));
+
+            console.error(errorMsg, error);
+            return Promise.reject(error);
         }
     },
 

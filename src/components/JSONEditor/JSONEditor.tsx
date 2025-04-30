@@ -1,7 +1,7 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import styled from 'styled-components';
-import Editor, {BeforeMount, loader, OnChange, OnMount} from '@monaco-editor/react';
-import {FaCode, FaCog, FaEdit, FaInfoCircle} from 'react-icons/fa';
+import Editor, {BeforeMount, OnChange, OnMount} from '@monaco-editor/react';
+import {FaCode, FaCog, FaEdit, FaExclamationTriangle, FaInfoCircle} from 'react-icons/fa';
 import {motion} from 'framer-motion';
 import {colorTransition, fadeIn} from '@/styles/animations';
 import {useTranslation} from 'react-i18next';
@@ -45,11 +45,11 @@ interface JSONEditorProps {
 }
 
 // load loader.js from local node_modules
-loader.config({
-    paths: {
-        vs: '/monaco-editor/min/vs'
-    }
-});
+// loader.config({
+//     paths: {
+//         vs: '/monaco-editor/min/vs'
+//     }
+// });
 
 const JSONEditor: React.FC<JSONEditorProps> = ({
                                                    value,
@@ -70,6 +70,10 @@ const JSONEditor: React.FC<JSONEditorProps> = ({
     const [isEditing, setIsEditing] = useState(!readOnly);
     const [originalJson, setOriginalJson] = useState(value);
     const [editorError, setEditorError] = useState<string | null>(null);
+    const [isMonacoLoading, setIsMonacoLoading] = useState(true);
+    const [useLocalEditor, setUseLocalEditor] = useState(false);
+    const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const [showFallbackButton, setShowFallbackButton] = useState(false);
     const [localPaths, setLocalPaths] = useState(paths || {
         // Default values for request configuration
         requestMessageGroupPath: 'messages',
@@ -113,6 +117,26 @@ const JSONEditor: React.FC<JSONEditorProps> = ({
         }
     }, [paths]);
 
+    // Set up the loading timeout when the component mounts
+    useEffect(() => {
+        // Reset timeout whenever useLocalEditor changes
+        if (loadingTimeoutRef.current) {
+            clearTimeout(loadingTimeoutRef.current);
+        }
+
+        if (!useLocalEditor && isMonacoLoading) {
+            loadingTimeoutRef.current = setTimeout(() => {
+                setShowFallbackButton(true);
+            }, 10000); // 10 seconds timeout
+        }
+
+        return () => {
+            if (loadingTimeoutRef.current) {
+                clearTimeout(loadingTimeoutRef.current);
+            }
+        };
+    }, [useLocalEditor, isMonacoLoading]);
+
     const handleEditorChange: OnChange = (newValue) => {
         if (newValue) {
             setEditorValue(newValue);
@@ -128,6 +152,14 @@ const JSONEditor: React.FC<JSONEditorProps> = ({
             scrollBeyondLastLine: false,
             automaticLayout: true
         });
+
+        // Editor has loaded successfully
+        setIsMonacoLoading(false);
+        setShowFallbackButton(false);
+
+        if (loadingTimeoutRef.current) {
+            clearTimeout(loadingTimeoutRef.current);
+        }
     };
 
     const handleBeforeMount: BeforeMount = () => {
@@ -168,6 +200,16 @@ const JSONEditor: React.FC<JSONEditorProps> = ({
     const startEditing = () => {
         setOriginalJson(value);
         setIsEditing(true);
+    };
+
+    const switchToLocalEditor = () => {
+        setUseLocalEditor(true);
+        setIsMonacoLoading(false);
+        setShowFallbackButton(false);
+
+        if (loadingTimeoutRef.current) {
+            clearTimeout(loadingTimeoutRef.current);
+        }
     };
 
     // Fallback editor component when Monaco fails to load
@@ -393,12 +435,36 @@ const JSONEditor: React.FC<JSONEditorProps> = ({
                                         <JSONViewer value={originalJson}/>
                                     </ReferenceJsonContainer>
                                 )}
-                                {editorError ? (
+
+                                {showFallbackButton && !useLocalEditor && (
+                                    <LoadingTimeoutMessage>
+                                        <FaExclamationTriangle size={16}
+                                                               style={{marginRight: '8px', color: '#f9a825'}}/>
+                                        {t('monaco_loading_timeout', 'Monaco editor is taking too long to load')}
+                                        <ActionButton
+                                            onClick={switchToLocalEditor}
+                                            whileHover={{backgroundColor: 'rgba(255, 255, 255, 0.1)'}}
+                                            whileTap={{scale: 0.95}}
+                                            type="button"
+                                            style={{marginLeft: '12px'}}
+                                        >
+                                            <span>{t('use_local_editor', 'Use Local Editor')}</span>
+                                        </ActionButton>
+                                    </LoadingTimeoutMessage>
+                                )}
+
+                                {editorError || useLocalEditor ? (
                                     <FallbackContainer>
-                                        <ErrorMessage>
-                                            {t('monaco_initialization_error', 'Monaco editor failed to initialize')}: {editorError}
-                                        </ErrorMessage>
-                                        <p>{t('fallback_editor_message', 'Using simple text editor as fallback')}</p>
+                                        {editorError && (
+                                            <ErrorMessage>
+                                                {t('monaco_initialization_error', 'Monaco editor failed to initialize')}: {editorError}
+                                            </ErrorMessage>
+                                        )}
+                                        {useLocalEditor && (
+                                            <LocalEditorMessage>
+                                                {t('using_local_editor', 'Using local editor')}
+                                            </LocalEditorMessage>
+                                        )}
                                         <FallbackEditor/>
                                     </FallbackContainer>
                                 ) : (
@@ -635,6 +701,25 @@ const FallbackContainer = styled.div`
     gap: 10px;
     width: 100%;
     padding: 10px 0;
+`;
+
+const LoadingTimeoutMessage = styled.div`
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    margin-bottom: 16px;
+    background-color: ${({theme}) => theme.isDark ? 'rgba(255, 193, 7, 0.05)' : 'rgba(255, 193, 7, 0.1)'};
+    border: 1px solid ${({theme}) => theme.isDark ? 'rgba(255, 193, 7, 0.2)' : 'rgba(255, 193, 7, 0.3)'};
+    border-radius: ${({theme}) => theme.borderRadius};
+    font-size: 0.9rem;
+    color: ${({theme}) => theme.colors.text};
+    animation: ${fadeIn} 0.3s ease;
+`;
+
+const LocalEditorMessage = styled.div`
+    padding: 8px 0;
+    color: ${({theme}) => theme.colors.primary};
+    font-size: 0.9rem;
 `;
 
 export default JSONEditor; 

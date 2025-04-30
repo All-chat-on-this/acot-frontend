@@ -19,7 +19,7 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar}) => {
     const {t} = useTranslation();
     const {user, isAuthenticated, logout} = useAuthStore();
     const {currentTheme, toggleLightDark, toggleDreamlikeColor} = useTheme();
-    const {configs, currentConfig, fetchConfigs, setCurrentConfig} = useConfigStore();
+    const {configs, currentConfig, fetchConfigs, setCurrentConfigById} = useConfigStore();
     const {fetchPreference} = usePreferenceStore();
     const navigate = useNavigate();
 
@@ -48,10 +48,7 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar}) => {
     }, []);
 
     const handleConfigSelect = (configId: number) => {
-        const config = configs.find(c => c.id === configId);
-        if (config) {
-            setCurrentConfig(config);
-        }
+        setCurrentConfigById(configId);
         setConfigDropdownOpen(false);
     };
 

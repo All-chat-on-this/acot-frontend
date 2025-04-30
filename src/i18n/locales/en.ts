@@ -165,6 +165,10 @@ const enTranslation = {
     thinking_text_field_description: 'Optional: The JSON path to extract AI\'s thinking process (chain of thought)',
     current_configuration: 'Current Configuration',
     code_view: 'Code View',
+    monaco_loading_timeout: 'Monaco editor is taking too long to load',
+    use_local_editor: 'Use Local Editor',
+    using_local_editor: 'Using local editor',
+    fallback_editor_message: 'Using simple text editor as fallback',
 
     // Language
     language: 'Language',

@@ -20,6 +20,7 @@ interface ConfigStore extends ConfigState {
     deleteConfig: (id: number) => Promise<void>;
     testConfig: (configData: Partial<ApiConfig>) => Promise<void>;
     setCurrentConfig: (config: ApiConfig | null) => void;
+    setCurrentConfigById: (id: number) => Promise<void>;
     resetTestResult: () => void;
 }
 
@@ -72,7 +73,7 @@ const useConfigStore = create<ConfigStore>((set, get) => ({
 
             // Fetch updated configs list to ensure UI is in sync
             await get().fetchConfigs();
-            
+
             return newConfig;
         } catch (error) {
             set({
@@ -135,6 +136,24 @@ const useConfigStore = create<ConfigStore>((set, get) => ({
             // If the test was successful and we're testing the current config with an ID, fetch it again
             const currentConfig = get().currentConfig;
             if (result.data?.success && currentConfig && configData.id && currentConfig.id === configData.id) {
+                // Update the isAvailable property in the current config immediately
+                set(state => ({
+                    currentConfig: state.currentConfig ? {
+                        ...state.currentConfig,
+                        isAvailable: result.data.success
+                    } : null
+                }));
+
+                // Also update the config in the configs list
+                set(state => ({
+                    configs: state.configs.map(config =>
+                        config.id === currentConfig.id
+                            ? {...config, isAvailable: result.data.success}
+                            : config
+                    )
+                }));
+
+                // Still fetch the updated config to ensure all properties are in sync
                 await get().fetchConfig(currentConfig.id);
             }
         } catch (error) {
@@ -157,6 +176,11 @@ const useConfigStore = create<ConfigStore>((set, get) => ({
 
     setCurrentConfig: (config) => {
         set({currentConfig: config});
+    },
+
+    setCurrentConfigById: async (id: number) => {
+        const find = get().configs.find(config => config.id === id);
+        set({currentConfig: find});
     },
 
     resetTestResult: () => {
