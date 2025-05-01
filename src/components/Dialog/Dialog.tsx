@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import styled from 'styled-components';
 import {AnimatePresence, motion} from 'framer-motion';
 import {FiAlertTriangle, FiInfo, FiX} from 'react-icons/fi';
@@ -37,7 +37,7 @@ const Dialog: React.FC<DialogProps> = ({
     };
 
     // Handle keyboard events
-    React.useEffect(() => {
+    useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'Escape') {
                 onClose();
@@ -246,4 +246,4 @@ const ConfirmButton = styled(Button)<{ $type: DialogType }>`
     color: ${({theme}) => theme.colors.buttonText};
 `;
 
-export default Dialog; 
+export default Dialog;

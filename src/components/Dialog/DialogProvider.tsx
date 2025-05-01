@@ -52,7 +52,6 @@ export const DialogProvider: React.FC<{ children: React.ReactNode }> = ({childre
                     isOpen: true,
                     resolve: () => {
                         resolve();
-                        return true;
                     },
                 });
             });
