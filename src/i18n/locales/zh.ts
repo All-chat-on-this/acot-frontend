@@ -61,6 +61,10 @@ const zhTranslation = {
     no_conversations: '还没有对话。创建一个新对话开始使用！',
     no_search_results: '没有匹配您搜索的对话',
     api_configurations: 'API配置',
+    edit_conversation: '编辑对话',
+    delete_conversation: '删除对话',
+    confirm_delete_conversation_message: '您确定要删除此对话吗？此操作无法撤消。',
+    failed_to_delete_conversation: '删除对话失败。请重试。',
 
     // Chat
     no_conversation_selected: '未选择对话',

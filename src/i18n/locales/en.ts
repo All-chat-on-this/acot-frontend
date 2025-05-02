@@ -61,6 +61,10 @@ const enTranslation = {
     no_conversations: 'No conversations yet. Create one to get started!',
     no_search_results: 'No conversations match your search',
     api_configurations: 'API Configurations',
+    edit_conversation: 'Edit conversation',
+    delete_conversation: 'Delete conversation',
+    confirm_delete_conversation_message: 'Are you sure you want to delete this conversation? This action cannot be undone.',
+    failed_to_delete_conversation: 'Failed to delete conversation. Please try again.',
 
     // Chat
     no_conversation_selected: 'No conversation selected',

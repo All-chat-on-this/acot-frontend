@@ -3,12 +3,13 @@ import styled from 'styled-components';
 import {NavLink, useNavigate} from 'react-router-dom';
 import {useTranslation} from 'react-i18next';
 import {AnimatePresence, motion} from 'framer-motion';
-import {FiCheck, FiEdit2, FiMessageSquare, FiPlus, FiSearch, FiSettings, FiX} from 'react-icons/fi';
+import {FiCheck, FiEdit2, FiMessageSquare, FiPlus, FiSearch, FiSettings, FiTrash2, FiX} from 'react-icons/fi';
 import useConversationStore from '@/store/conversationStore';
 import usePreferenceStore from '@/store/preferenceStore.ts';
 import {colorTransition, fadeIn, slideUp} from '@/styles/animations';
 import apiService from '@/api/apiService';
 import {ConversationPageRequest} from '@/api/type/modelApi';
+import {useDialog} from '@/components/Dialog';
 
 interface SidebarProps {
     isOpen?: boolean;
@@ -24,9 +25,16 @@ const Sidebar: React.FC<SidebarProps> = ({
                                              onMobileClose
                                          }) => {
     const {t} = useTranslation();
-    const {conversations, createConversation, updateConversation, setConversations} = useConversationStore();
+    const {
+        conversations,
+        createConversation,
+        updateConversation,
+        deleteConversation,
+        setConversations
+    } = useConversationStore();
     const {preference} = usePreferenceStore();
     const navigate = useNavigate();
+    const dialog = useDialog();
     const [searchTerm, setSearchTerm] = useState('');
     const [editingConversationId, setEditingConversationId] = useState<number | null>(null);
     const [editTitle, setEditTitle] = useState('');
@@ -181,6 +189,52 @@ const Sidebar: React.FC<SidebarProps> = ({
         }
     };
 
+    const handleDeleteConversation = async (conversationId: number, e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Use dialog.confirm instead of window.confirm
+        const confirmed = await dialog.confirm({
+            title: t('delete_conversation'),
+            message: t('confirm_delete_conversation_message'),
+            type: 'warning',
+            confirmLabel: t('delete'),
+            cancelLabel: t('cancel')
+        });
+
+        if (!confirmed) {
+            return;
+        }
+        
+        try {
+            await deleteConversation(conversationId);
+
+            // If the deleted conversation was the current one, navigate to the first available conversation or home
+            const currentPath = window.location.pathname;
+            if (currentPath.includes(`/chat/${conversationId}`)) {
+                if (conversations.length > 0) {
+                    // Find the first conversation that's not the one being deleted
+                    const nextConversation = conversations.find(c => c.id !== conversationId);
+                    if (nextConversation) {
+                        navigate(`/chat/${nextConversation.id}`);
+                    } else {
+                        navigate('/');
+                    }
+                } else {
+                    navigate('/');
+                }
+            }
+        } catch (error) {
+            console.error('Failed to delete conversation:', error);
+            // Show error dialog
+            await dialog.alert({
+                title: t('error'),
+                message: t('failed_to_delete_conversation'),
+                type: 'error'
+            });
+        }
+    };
+
     const handleNavigation = () => {
         if (isMobile && onMobileClose) {
             onMobileClose();
@@ -316,12 +370,22 @@ const Sidebar: React.FC<SidebarProps> = ({
                                                     >
                                                         <FiMessageSquare size={16} style={{marginRight: 10}}/>
                                                         <ConversationTitle>{conversation.title}</ConversationTitle>
-                                                        <EditConversationButton
-                                                            onClick={(e) => handleEditConversation(conversation.id, conversation.title, e)}
-                                                            whileHover={{opacity: 1}}
-                                                        >
-                                                            <FiEdit2 size={14}/>
-                                                        </EditConversationButton>
+                                                        <ConversationActions>
+                                                            <EditConversationButton
+                                                                onClick={(e) => handleEditConversation(conversation.id, conversation.title, e)}
+                                                                whileHover={{opacity: 1}}
+                                                                title={t('edit_conversation')}
+                                                            >
+                                                                <FiEdit2 size={14}/>
+                                                            </EditConversationButton>
+                                                            <DeleteConversationButton
+                                                                onClick={(e) => handleDeleteConversation(conversation.id, e)}
+                                                                whileHover={{opacity: 1}}
+                                                                title={t('delete_conversation')}
+                                                            >
+                                                                <FiTrash2 size={14}/>
+                                                            </DeleteConversationButton>
+                                                        </ConversationActions>
                                                     </ConversationItem>
                                                 )}
                                             </div>
@@ -571,7 +635,7 @@ const EditConversationButton = styled(motion.button)`
     background: none;
     border: none;
     color: ${({theme}) => theme.colors.text};
-    opacity: 0;
+    opacity: 0.5;
     margin-left: 8px;
     padding: 4px;
     cursor: pointer;
@@ -579,13 +643,33 @@ const EditConversationButton = styled(motion.button)`
     align-items: center;
     justify-content: center;
     border-radius: 4px;
-
-    ${ConversationItem}:hover & {
-        opacity: 0.5;
-    }
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+    background-color: transparent;
 
     &:hover {
+        opacity: 1;
         background-color: rgba(0, 0, 0, 0.1);
+    }
+`;
+
+const DeleteConversationButton = styled(motion.button)`
+    background: none;
+    border: none;
+    color: ${({theme}) => theme.colors.error || 'red'};
+    opacity: 0.5;
+    margin-left: 4px;
+    padding: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+    background-color: transparent;
+
+    &:hover {
+        opacity: 1;
+        background-color: rgba(255, 0, 0, 0.1);
     }
 `;
 
@@ -666,6 +750,18 @@ const LoadMoreIndicator = styled.div`
     align-items: center;
     padding: 10px;
     height: 40px;
+`;
+
+// Add ConversationActions container
+const ConversationActions = styled.div`
+    display: flex;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+
+    ${ConversationItem}:hover & {
+        opacity: 1;
+    }
 `;
 
 export default Sidebar; 
