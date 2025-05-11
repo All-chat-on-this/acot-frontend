@@ -84,6 +84,12 @@ const HomePage: React.FC = () => {
                         </Feature>
                     </Features>
                 </FeatureSection>
+
+                <Footer>
+                    <ICPRecord href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">
+                        鄂 ICP 备 2025113620 号
+                    </ICPRecord>
+                </Footer>
             </HomeContainer>
         </Layout>
     );
@@ -234,6 +240,26 @@ const FeatureDescription = styled.p`
     margin: 0;
     opacity: 0.8;
     line-height: 1.5;
+`;
+
+const Footer = styled.footer`
+    text-align: center;
+    padding: 20px 0;
+    margin-top: 40px;
+    border-top: 1px solid ${({theme}) => theme.colors.border};
+`;
+
+const ICPRecord = styled.a`
+    color: ${({theme}) => theme.colors.text};
+    opacity: 0.7;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+
+    &:hover {
+        opacity: 1;
+        color: ${({theme}) => theme.colors.primary};
+    }
 `;
 
 export default HomePage; 
