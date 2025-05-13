@@ -156,10 +156,10 @@ const ConfigDetailView: React.FC<ConfigDetailViewProps> = ({
                 <ConfigDetailValue>{currentConfig.requestAssistantField || 'assistant'}</ConfigDetailValue>
             </ConfigDetail>
 
-            <ConfigDetail>
-                <ConfigDetailLabel>{t('system_role')}</ConfigDetailLabel>
-                <ConfigDetailValue>{currentConfig.requestSystemField || 'system'}</ConfigDetailValue>
-            </ConfigDetail>
+            {/*<ConfigDetail>*/}
+            {/*    <ConfigDetailLabel>{t('system_role')}</ConfigDetailLabel>*/}
+            {/*    <ConfigDetailValue>{currentConfig.requestSystemField || 'system'}</ConfigDetailValue>*/}
+            {/*</ConfigDetail>*/}
 
             <ConfigDetail>
                 <ConfigDetailLabel>{t('request_template')}</ConfigDetailLabel>

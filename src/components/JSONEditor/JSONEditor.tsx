@@ -378,18 +378,18 @@ const JSONEditor: React.FC<JSONEditorProps> = ({
                                             </PathFieldDescription>
                                         </PathFieldGroup>
 
-                                        <PathFieldGroup>
-                                            <PathFieldLabel>{t('system_role')}:</PathFieldLabel>
-                                            <PathFieldInput
-                                                type="text"
-                                                value={localPaths.requestSystemField || ''}
-                                                onChange={(e) => handlePathChange('requestSystemField', e.target.value)}
-                                                placeholder="system"
-                                            />
-                                            <PathFieldDescription>
-                                                {t('system_role_helper')}
-                                            </PathFieldDescription>
-                                        </PathFieldGroup>
+                                        {/*<PathFieldGroup>*/}
+                                        {/*    <PathFieldLabel>{t('system_role')}:</PathFieldLabel>*/}
+                                        {/*    <PathFieldInput*/}
+                                        {/*        type="text"*/}
+                                        {/*        value={localPaths.requestSystemField || ''}*/}
+                                        {/*        onChange={(e) => handlePathChange('requestSystemField', e.target.value)}*/}
+                                        {/*        placeholder="system"*/}
+                                        {/*    />*/}
+                                        {/*    <PathFieldDescription>*/}
+                                        {/*        {t('system_role_helper')}*/}
+                                        {/*    </PathFieldDescription>*/}
+                                        {/*</PathFieldGroup>*/}
                                     </>
                                 ) : (
                                     // Response Template Path Editor
