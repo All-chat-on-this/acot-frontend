@@ -42,6 +42,7 @@ export interface SendMessageRequest {
     conversationId: number;
     configId: number;
     message: string;
+    secretKey: string;
 }
 
 export interface MessageCreateRequest {

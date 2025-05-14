@@ -132,6 +132,17 @@ const enTranslation = {
     unavailable: 'Unavailable',
     delete_confirmation: 'Confirm Deletion',
 
+    // Secret Key Dialog
+    set_secret_key: 'Set Encryption Secret Key',
+    secret_key: 'Secret Key',
+    confirm_secret_key: 'Confirm Secret Key',
+    enter_secret_key: 'Enter a secure secret key',
+    secret_key_required: 'Secret key is required',
+    secret_keys_dont_match: 'Secret keys do not match',
+    secret_key_info: 'This secret key will be used to encrypt your API key for security. It will only be stored in your browser and never sent to the server. If you lose this key, you will need to configure your API key again.',
+    secret_key_info_with_name: 'This secret key will be used to encrypt the API key for "{{name}}". It will only be stored in your browser and never sent to the server. If you lose this key, you will need to configure your API key again.',
+    decrypt_key_info: 'Enter the secret key to decrypt the API key for this configuration.',
+
     // Request Configuration
     request_configuration: 'Request Configuration',
     message_group_path: 'Message Group Path',
@@ -212,7 +223,8 @@ const enTranslation = {
     this_is_an_info_dialog: 'This is an informational message.',
     this_is_a_warning_dialog: 'This is a warning message. Proceed with caution.',
     this_is_an_error_dialog: 'This is an error message. Something went wrong.',
-    you_confirmed_the_action: 'You confirmed the action successfully!'
+    you_confirmed_the_action: 'You confirmed the action successfully!',
+    operation_canceled: 'Operation was canceled'
 };
 
 export default enTranslation; 

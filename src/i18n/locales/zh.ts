@@ -132,6 +132,17 @@ const zhTranslation = {
     unavailable: '不可用',
     delete_confirmation: '确认删除',
 
+    // Secret Key Dialog
+    set_secret_key: '设置加密密钥',
+    secret_key: '密钥',
+    confirm_secret_key: '确认密钥',
+    enter_secret_key: '输入安全密钥',
+    secret_key_required: '密钥不能为空',
+    secret_keys_dont_match: '两次输入的密钥不匹配',
+    secret_key_info: '此密钥将用于加密您的API密钥以提高安全性。它只会存储在您的浏览器中，永远不会发送到服务器。如果您丢失此密钥，您将需要重新配置您的API密钥。',
+    secret_key_info_with_name: '此密钥将用于加密"{{name}}"的API密钥。它只会存储在您的浏览器中，永远不会发送到服务器。如果您丢失此密钥，您将需要重新配置您的API密钥。',
+    decrypt_key_info: '输入密钥以解密此配置的API密钥。',
+
     // Request Configuration
     request_configuration: '请求配置',
     message_group_path: '消息组路径',
@@ -212,7 +223,8 @@ const zhTranslation = {
     this_is_an_info_dialog: '这是一条信息提示。',
     this_is_a_warning_dialog: '这是一条警告信息。请谨慎操作。',
     this_is_an_error_dialog: '这是一条错误信息。发生了错误。',
-    you_confirmed_the_action: '您已成功确认操作！'
+    you_confirmed_the_action: '您已成功确认操作！',
+    operation_canceled: '操作已取消'
 };
 
 export default zhTranslation; 

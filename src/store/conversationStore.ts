@@ -20,7 +20,7 @@ interface ConversationStore extends ConversationState {
     createConversation: (title: string) => Promise<Conversation>;
     updateConversation: (id: number, data: Partial<Conversation>) => Promise<Conversation>;
     deleteConversation: (id: number) => Promise<void>;
-    sendMessage: (content: string, configId: number) => Promise<Message>;
+    sendMessage: (content: string, configId: number, secretKey: string) => Promise<Message>;
     renameMessage: (id: number, content: string) => Promise<Message>;
     deleteMessage: (id: number) => Promise<void>;
     setConversations: (conversations: Conversation[]) => void;
@@ -150,7 +150,7 @@ const useConversationStore = create<ConversationStore>((set, get) => ({
         }
     },
 
-    sendMessage: async (content: string, configId: number) => {
+    sendMessage: async (content: string, configId: number, secretKey: string) => {
         set({isLoading: true, error: null});
         try {
             const {currentConversation} = get();
@@ -194,7 +194,8 @@ const useConversationStore = create<ConversationStore>((set, get) => ({
             const sendMessageRequest: SendMessageRequest = {
                 conversationId: currentConversation.id,
                 configId,
-                message: content
+                message: content,
+                secretKey
             };
 
             // Send the message to get the assistant response

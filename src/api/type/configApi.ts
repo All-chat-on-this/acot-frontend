@@ -28,6 +28,11 @@ export interface ApiConfig {
     responseThinkingTextPath?: string;
 }
 
+// Type for test operation that includes secret key
+export interface ApiConfigTestRequest extends Omit<ApiConfig, 'userId' | 'isAvailable'> {
+    secretKey?: string;
+}
+
 // Service Interface
 export interface ConfigService {
     getConfigs(): Promise<CommonResult<ApiConfig[]>>;
@@ -40,7 +45,7 @@ export interface ConfigService {
 
     deleteConfig(id: number): Promise<boolean>;
 
-    testConfig(configData: Omit<ApiConfig, 'userId' | 'isAvailable'>): Promise<CommonResult<TestResult>>;
+    testConfig(configData: ApiConfigTestRequest): Promise<CommonResult<TestResult>>;
 }
 
 export const configService: ConfigService = {
@@ -69,7 +74,7 @@ export const configService: ConfigService = {
         return true;
     },
 
-    testConfig: async (configData: Omit<ApiConfig, 'userId' | 'isAvailable'>): Promise<CommonResult<TestResult>> => {
+    testConfig: async (configData: ApiConfigTestRequest): Promise<CommonResult<TestResult>> => {
         const response = await apiClient.post('/config/test', configData);
         return response.data;
     }

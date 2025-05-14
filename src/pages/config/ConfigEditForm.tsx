@@ -6,10 +6,12 @@ import JSONEditor from '@/components/JSONEditor/JSONEditor';
 import useConfigStore from '@/store/configStore';
 import {colorTransition, fadeIn} from '@/styles/animations';
 import {ActionButton} from '../ConfigPage';
-import {ApiConfig} from "@/api/type/configApi.ts";
+import {ApiConfig, ApiConfigTestRequest} from "@/api/type/configApi.ts";
 import {useTranslation} from "react-i18next";
 import TestResponse from '@/components/TestResponse';
 import {useDialog} from '@/components/Dialog';
+import useEncryption from '@/hooks/useEncryption';
+import {encryptData} from '@/utils/encryptionUtils';
 
 interface ConfigEditFormProps {
     currentConfig: ApiConfig | null;
@@ -42,13 +44,13 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
         updateConfig,
         testConfig,
         setCurrentConfigById,
-        fetchConfigs,
         testResult,
         error
     } = useConfigStore();
 
     const {t} = useTranslation();
     const dialog = useDialog();
+    const {getOrCreateSecretKey} = useEncryption();
 
     // State to track if we've successfully tested the configuration
     const [hasSuccessfulTest, setHasSuccessfulTest] = useState(false);
@@ -311,38 +313,64 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
                 }
             }
 
-            const configData = {
-                name: formData.name,
-                apiUrl: formData.apiUrl,
-                apiKey: formData.apiKey,
-                apiKeyPlacement: formData.apiKeyPlacement,
-                apiKeyHeader: formData.apiKeyPlacement === 'custom_header' ? formData.apiKeyHeader : undefined,
-                apiKeyBodyPath: formData.apiKeyPlacement === 'body' ? formData.apiKeyBodyPath : undefined,
-                headers: {'Content-Type': 'application/json'},
-                requestTemplate,
-                responseTemplate,
-                requestMessageGroupPath: paths.requestMessageGroupPath,
-                requestRolePathFromGroup: paths.requestRolePathFromGroup,
-                requestTextPathFromGroup: paths.requestTextPathFromGroup,
-                requestUserRoleField: paths.requestUserRoleField,
-                requestAssistantField: paths.requestAssistantField,
-                requestSystemField: paths.requestSystemField,
-                responseTextPath: paths.responseTextPath,
-                responseThinkingTextPath: paths.responseThinkingTextPath,
-                // If creating a new configuration, and we've had a successful test, set to true
-                isAvailable: !currentConfig && hasSuccessfulTest ? true : undefined
-            };
+            // Two-phase process for new configurations
+            if (!currentConfig) {
+                // Phase 1: Save a temporary configuration without an API key to get an ID
+                const tempConfigData = {
+                    name: formData.name,
+                    apiUrl: formData.apiUrl,
+                    apiKey: "", // Empty API key
+                    apiKeyPlacement: formData.apiKeyPlacement,
+                    apiKeyHeader: formData.apiKeyPlacement === 'custom_header' ? formData.apiKeyHeader : undefined,
+                    apiKeyBodyPath: formData.apiKeyPlacement === 'body' ? formData.apiKeyBodyPath : undefined,
+                    headers: {'Content-Type': 'application/json'},
+                    requestTemplate,
+                    responseTemplate,
+                    requestMessageGroupPath: paths.requestMessageGroupPath,
+                    requestRolePathFromGroup: paths.requestRolePathFromGroup,
+                    requestTextPathFromGroup: paths.requestTextPathFromGroup,
+                    requestUserRoleField: paths.requestUserRoleField,
+                    requestAssistantField: paths.requestAssistantField,
+                    requestSystemField: paths.requestSystemField,
+                    responseTextPath: paths.responseTextPath,
+                    responseThinkingTextPath: paths.responseThinkingTextPath,
+                    isAvailable: hasSuccessfulTest
+                };
 
-            if (currentConfig) {
-                // Update existing config
-                await updateConfig(currentConfig.id, configData);
-                // Config is already fetched and set as current in updateConfig
-                await setCurrentConfigById(currentConfig.id);
-            } else {
-                // Create new config and explicitly set it as current
-                const newConfig = await createConfig(configData);
-                // createConfig already sets this as current in the store
-                await setCurrentConfigById(newConfig.id);
+                // Create temporary config to get an ID
+                const tempConfig = await createConfig(tempConfigData);
+
+                // Skip encryption if API key is empty
+                if (!formData.apiKey) {
+                    await setCurrentConfigById(tempConfig.id);
+                    handleCancelEdit();
+                    return;
+                }
+
+                // Phase 2: Get or create secret key and encrypt the API key
+                try {
+                    // Get secret key or create a new one
+                    const secretKey = await getOrCreateSecretKey(tempConfig.id, formData.name);
+
+                    // Encrypt the API key
+                    const encryptedApiKey = encryptData(formData.apiKey, secretKey);
+
+                    // Update the config with the encrypted API key
+                    const finalConfigData = {
+                        ...tempConfigData,
+                        apiKey: `enc:${encryptedApiKey}`
+                    };
+
+                    await updateConfig(tempConfig.id, finalConfigData);
+                    await setCurrentConfigById(tempConfig.id);
+                } catch (error) {
+                    console.error('API key encryption failed:', error);
+                    // Still keep the config but with empty API key
+                    await setCurrentConfigById(tempConfig.id);
+                }
+
+                handleCancelEdit();
+                return;
             }
 
             handleCancelEdit();
@@ -375,41 +403,81 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
                 }
             }
 
-            console.log('currentConfig:' + JSON.stringify(currentConfig));
+            // Two-phase process for new configurations
+            if (!currentConfig) {
+                // Phase 1: Save a temporary configuration without an API key to get an ID
+                const tempConfigData = {
+                    name: formData.name,
+                    apiUrl: formData.apiUrl,
+                    apiKey: "", // Empty API key
+                    apiKeyPlacement: formData.apiKeyPlacement,
+                    apiKeyHeader: formData.apiKeyPlacement === 'custom_header' ? formData.apiKeyHeader : undefined,
+                    apiKeyBodyPath: formData.apiKeyPlacement === 'body' ? formData.apiKeyBodyPath : undefined,
+                    headers: {'Content-Type': 'application/json'},
+                    requestTemplate,
+                    responseTemplate,
+                    requestMessageGroupPath: paths.requestMessageGroupPath,
+                    requestRolePathFromGroup: paths.requestRolePathFromGroup,
+                    requestTextPathFromGroup: paths.requestTextPathFromGroup,
+                    requestUserRoleField: paths.requestUserRoleField,
+                    requestAssistantField: paths.requestAssistantField,
+                    requestSystemField: paths.requestSystemField,
+                    responseTextPath: paths.responseTextPath,
+                    responseThinkingTextPath: paths.responseThinkingTextPath
+                };
 
-            const configData = {
-                id: currentConfig?.id, // Include ID if it's an existing config
-                name: formData.name,
-                apiUrl: formData.apiUrl,
-                apiKey: formData.apiKey,
-                apiKeyPlacement: formData.apiKeyPlacement,
-                apiKeyHeader: formData.apiKeyPlacement === 'custom_header' ? formData.apiKeyHeader : undefined,
-                apiKeyBodyPath: formData.apiKeyPlacement === 'body' ? formData.apiKeyBodyPath : undefined,
-                headers: {'Content-Type': 'application/json'},
-                requestTemplate,
-                responseTemplate,
-                requestMessageGroupPath: paths.requestMessageGroupPath,
-                requestRolePathFromGroup: paths.requestRolePathFromGroup,
-                requestTextPathFromGroup: paths.requestTextPathFromGroup,
-                requestUserRoleField: paths.requestUserRoleField,
-                requestAssistantField: paths.requestAssistantField,
-                requestSystemField: paths.requestSystemField,
-                responseTextPath: paths.responseTextPath,
-                responseThinkingTextPath: paths.responseThinkingTextPath
-            };
+                // Create temporary config to get an ID
+                const tempConfig = await createConfig(tempConfigData);
 
-            await testConfig(configData);
+                // Skip encryption if API key is empty
+                if (!formData.apiKey) {
+                    // Test with empty API key (no secret key needed)
+                    const testRequestData: ApiConfigTestRequest = {
+                        ...tempConfigData,
+                        id: tempConfig.id
+                    };
+                    await testConfig(testRequestData);
+                    return;
+                }
 
-            if (currentConfig) {
-                // Update the existing config with all form data fields
-                updateConfig(currentConfig.id, configData).then(() => {
-                    // Config is already fetched and set as current in updateConfig
-                    setCurrentConfigById(currentConfig.id);
-                });
+                try {
+                    // Get secret key or create a new one
+                    const secretKey = await getOrCreateSecretKey(tempConfig.id, formData.name);
+
+                    // Encrypt the API key
+                    const encryptedApiKey = encryptData(formData.apiKey, secretKey);
+
+                    // Update the config with the encrypted API key
+                    const finalConfigData = {
+                        ...tempConfigData,
+                        id: tempConfig.id,
+                        apiKey: `enc:${encryptedApiKey}`
+                    };
+
+                    // Update first with encrypted API key
+                    await updateConfig(tempConfig.id, finalConfigData);
+
+                    // Then test with the secret key
+                    const testRequestData: ApiConfigTestRequest = {
+                        ...finalConfigData,
+                        secretKey
+                    };
+                    await testConfig(testRequestData);
+
+                    // Update the config to reflect test results
+                    setCurrentConfigById(tempConfig.id);
+                } catch (error) {
+                    console.error('API key encryption failed:', error);
+                    // Test with temporary config (empty API key)
+                    const testRequestData: ApiConfigTestRequest = {
+                        ...tempConfigData,
+                        id: tempConfig.id
+                    };
+                    await testConfig(testRequestData);
+                }
+
+                return;
             }
-
-            // If it's an existing config, update its isAvailable status immediately after testing
-            // The result will be applied in useConfigStore's testConfig handler via the useEffect below
         } catch (error) {
             console.error('Failed to test configuration:', error);
             await dialog.alert({

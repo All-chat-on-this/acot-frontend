@@ -9,6 +9,7 @@ import useConversationStore from '@/store/conversationStore';
 import useConfigStore from '@/store/configStore';
 import usePreferenceStore from '@/store/preferenceStore.ts';
 import {slideUp} from '@/styles/animations';
+import useEncryption from '@/hooks/useEncryption';
 
 const ChatPage: React.FC = () => {
     const {t} = useTranslation();
@@ -28,6 +29,7 @@ const ChatPage: React.FC = () => {
 
     const {currentConfig} = useConfigStore();
     const {preference} = usePreferenceStore();
+    const {getOrCreateSecretKey} = useEncryption();
 
     useEffect(() => {
         if (id) {
@@ -56,7 +58,12 @@ const ChatPage: React.FC = () => {
 
         try {
             setLocalError(null); // Clear any previous errors on success
-            await sendMessage(content, currentConfig.id);
+
+            // Get the secret key if the API key is encrypted
+            const secretKey = await getOrCreateSecretKey(currentConfig.id, currentConfig.name);
+
+            // Send message with content and secretKey (if needed)
+            await sendMessage(content, currentConfig.id, secretKey);
         } catch (err) {
             console.error('Send message error:', err);
             setLocalError(err instanceof Error ? err.message : t('message_send_error'));

@@ -1,5 +1,5 @@
 import {create} from 'zustand';
-import {ApiConfig} from '@/api/type/configApi.ts';
+import {ApiConfig, ApiConfigTestRequest} from '@/api/type/configApi.ts';
 import apiService from '@/api/apiService';
 import {CommonResult} from "@/types";
 import {TestResult} from "@/pages/config/ConfigEditForm.tsx";
@@ -18,7 +18,7 @@ interface ConfigStore extends ConfigState {
     createConfig: (configData: Omit<ApiConfig, 'id' | 'userId' | 'isAvailable'>) => Promise<ApiConfig>;
     updateConfig: (id: number, configData: Partial<ApiConfig>) => Promise<void>;
     deleteConfig: (id: number) => Promise<void>;
-    testConfig: (configData: Partial<ApiConfig>) => Promise<void>;
+    testConfig: (configData: ApiConfigTestRequest) => Promise<void>;
     setCurrentConfig: (config: ApiConfig | null) => void;
     setCurrentConfigById: (id: number) => Promise<void>;
     resetTestResult: () => void;
@@ -127,7 +127,7 @@ const useConfigStore = create<ConfigStore>((set, get) => ({
     testConfig: async (configData) => {
         set({isLoading: true, error: null, testResult: null});
         try {
-            const result = await apiService.configs.testConfig(configData as ApiConfig);
+            const result = await apiService.configs.testConfig(configData as ApiConfigTestRequest);
             set({
                 testResult: result,
                 isLoading: false
