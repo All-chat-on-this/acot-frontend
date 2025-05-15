@@ -65,7 +65,7 @@ export interface ConversationService {
 export interface MessageService {
     getMessages: (conversationId: number) => Promise<Message[]>;
     getMessage: (id: number) => Promise<Message>;
-    renameMessage: (id: number, content: string) => Promise<Message>;
+    renameMessage: (id: number, content: string, secretKey: string) => Promise<Message>;
     sendMessage: (data: SendMessageRequest) => Promise<Message>;
     deleteMessage: (id: number) => Promise<boolean>;
     deleteConversationMessages: (conversationId: number) => Promise<boolean>;
@@ -118,10 +118,11 @@ export const messageService: MessageService = {
         return response.data.data;
     },
 
-    renameMessage: async (id: number, content: string): Promise<Message> => {
+    renameMessage: async (id: number, content: string, secretKey: string): Promise<Message> => {
         const response = await apiClient.post<CommonResult<Message>>('/conversation/message/renameMessage', {
             id,
-            content
+            content,
+            secretKey
         });
         return response.data.data;
     },

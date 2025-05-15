@@ -11,7 +11,7 @@ import {useTranslation} from "react-i18next";
 import TestResponse from '@/components/TestResponse';
 import {useDialog} from '@/components/Dialog';
 import useEncryption from '@/hooks/useEncryption';
-import {encryptData} from '@/utils/encryptionUtils';
+import {decryptData, encryptData, getConfigSecretKey} from '@/utils/encryptionUtils';
 
 interface ConfigEditFormProps {
     currentConfig: ApiConfig | null;
@@ -50,10 +50,12 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
 
     const {t} = useTranslation();
     const dialog = useDialog();
-    const {getOrCreateSecretKey} = useEncryption();
+    const {getOrCreateSecretKey, secretKeyDialogComponent} = useEncryption();
 
     // State to track if we've successfully tested the configuration
     const [hasSuccessfulTest, setHasSuccessfulTest] = useState(false);
+
+    // Add state for decrypted API key
 
     // Debug effect to check test result data
     useEffect(() => {
@@ -65,6 +67,49 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
             }
         }
     }, [testResult]);
+
+    useEffect(() => {
+        if (currentConfig) {
+            // If API key is encrypted, decrypt it when first loading the form or when config changes
+            const decryptApiKeyIfNeeded = async () => {
+                if (currentConfig.apiKey.startsWith('enc:')) {
+                    try {
+                        // Get the stored secret key for this config
+                        let secretKey = getConfigSecretKey(currentConfig.id);
+
+                        // If no secret key found in storage, prompt the user
+                        if (!secretKey) {
+                            try {
+                                secretKey = await getOrCreateSecretKey(currentConfig.id, currentConfig.name);
+                            } catch (error) {
+                                console.error('Secret key retrieval canceled:', error);
+                                return;
+                            }
+                        }
+
+                        // Remove the 'enc:' prefix and decrypt
+                        const encryptedKey = currentConfig.apiKey.substring(4);
+                        const decrypted = decryptData(encryptedKey, secretKey);
+
+                        // Update form data with decrypted key
+                        setFormData(prev => ({
+                            ...prev,
+                            apiKey: decrypted
+                        }));
+                    } catch (error) {
+                        console.error('Failed to decrypt API key:', error);
+                        await dialog.alert({
+                            title: t('error'),
+                            message: t('decryption_failed', 'Failed to decrypt API key'),
+                            type: 'error'
+                        });
+                    }
+                }
+            };
+
+            decryptApiKeyIfNeeded();
+        }
+    }, [currentConfig, showApiKey, dialog, t, getOrCreateSecretKey]);
 
     const [formData, setFormData] = useState({
         name: t('new_configuration'),
@@ -339,13 +384,7 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
 
                 // Create temporary config to get an ID
                 const tempConfig = await createConfig(tempConfigData);
-
-                // Skip encryption if API key is empty
-                if (!formData.apiKey) {
-                    await setCurrentConfigById(tempConfig.id);
-                    handleCancelEdit();
-                    return;
-                }
+                console.log('Created temporary config:', tempConfig);
 
                 // Phase 2: Get or create secret key and encrypt the API key
                 try {
@@ -358,13 +397,14 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
                     // Update the config with the encrypted API key
                     const finalConfigData = {
                         ...tempConfigData,
+                        id: tempConfig.id,
                         apiKey: `enc:${encryptedApiKey}`
                     };
 
                     await updateConfig(tempConfig.id, finalConfigData);
                     await setCurrentConfigById(tempConfig.id);
                 } catch (error) {
-                    console.error('API key encryption failed:', error);
+                    console.error('[handleSubmit] API key encryption failed:', error);
                     // Still keep the config but with empty API key
                     await setCurrentConfigById(tempConfig.id);
                 }
@@ -373,9 +413,55 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
                 return;
             }
 
+            // For existing configs, handle API key encryption if needed
+            let apiKeyToSave = formData.apiKey;
+
+            // If the current API key doesn't start with "enc:" but the original did,
+            // or if it's a completely new plaintext key, we need to encrypt it
+            const isPlaintext = !formData.apiKey.startsWith('enc:');
+            const wasEncrypted = currentConfig.apiKey.startsWith('enc:');
+
+            if (isPlaintext && (wasEncrypted || formData.apiKey !== currentConfig.apiKey)) {
+                try {
+                    // Get or create a secret key for this config
+                    const secretKey = await getOrCreateSecretKey(currentConfig.id, formData.name);
+
+                    // Encrypt the API key
+                    const encryptedApiKey = encryptData(formData.apiKey, secretKey);
+                    apiKeyToSave = `enc:${encryptedApiKey}`;
+                } catch (error) {
+                    console.error('[handleSubmit] API key encryption canceled:', error);
+                    return; // Stop form submission if canceled
+                }
+            }
+
+            const configData = {
+                name: formData.name,
+                apiUrl: formData.apiUrl,
+                apiKey: apiKeyToSave,
+                apiKeyPlacement: formData.apiKeyPlacement,
+                apiKeyHeader: formData.apiKeyPlacement === 'custom_header' ? formData.apiKeyHeader : undefined,
+                apiKeyBodyPath: formData.apiKeyPlacement === 'body' ? formData.apiKeyBodyPath : undefined,
+                headers: {'Content-Type': 'application/json'},
+                requestTemplate,
+                responseTemplate,
+                requestMessageGroupPath: paths.requestMessageGroupPath,
+                requestRolePathFromGroup: paths.requestRolePathFromGroup,
+                requestTextPathFromGroup: paths.requestTextPathFromGroup,
+                requestUserRoleField: paths.requestUserRoleField,
+                requestAssistantField: paths.requestAssistantField,
+                requestSystemField: paths.requestSystemField,
+                responseTextPath: paths.responseTextPath,
+                responseThinkingTextPath: paths.responseThinkingTextPath,
+            };
+
+            // Update existing config
+            await updateConfig(currentConfig.id, configData);
+            // Config is already fetched and set as current in updateConfig
+            await setCurrentConfigById(currentConfig.id);
             handleCancelEdit();
         } catch (error) {
-            console.error('Failed to save configuration:', error);
+            console.error('[handleSubmit] Failed to save configuration:', error);
             await dialog.alert({
                 title: t('error'),
                 message: t('invalid_json'),
@@ -429,17 +515,6 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
                 // Create temporary config to get an ID
                 const tempConfig = await createConfig(tempConfigData);
 
-                // Skip encryption if API key is empty
-                if (!formData.apiKey) {
-                    // Test with empty API key (no secret key needed)
-                    const testRequestData: ApiConfigTestRequest = {
-                        ...tempConfigData,
-                        id: tempConfig.id
-                    };
-                    await testConfig(testRequestData);
-                    return;
-                }
-
                 try {
                     // Get secret key or create a new one
                     const secretKey = await getOrCreateSecretKey(tempConfig.id, formData.name);
@@ -467,7 +542,7 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
                     // Update the config to reflect test results
                     setCurrentConfigById(tempConfig.id);
                 } catch (error) {
-                    console.error('API key encryption failed:', error);
+                    console.error('[handleTestConfig] API key encryption failed:', error);
                     // Test with temporary config (empty API key)
                     const testRequestData: ApiConfigTestRequest = {
                         ...tempConfigData,
@@ -478,8 +553,106 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
 
                 return;
             }
+
+            // For existing configs
+            // Always encrypt the plaintext API key from formData before testing
+            let secretKey: string | undefined = undefined;
+
+            // If the original config had an encrypted key, use the same secret key
+            if (currentConfig && !currentConfig.apiKey.startsWith('enc:')) {
+                try {
+                    // Get or create a secret key for this config
+                    secretKey = await getOrCreateSecretKey(currentConfig.id, formData.name);
+
+                    // Encrypt the form's API key for the test request
+                    const encryptedApiKey = encryptData(formData.apiKey, secretKey);
+
+                    // Create test data with encrypted key
+                    const testRequestData: ApiConfigTestRequest = {
+                        id: currentConfig.id,
+                        name: formData.name,
+                        apiUrl: formData.apiUrl,
+                        apiKey: `enc:${encryptedApiKey}`,
+                        apiKeyPlacement: formData.apiKeyPlacement,
+                        apiKeyHeader: formData.apiKeyPlacement === 'custom_header' ? formData.apiKeyHeader : undefined,
+                        apiKeyBodyPath: formData.apiKeyPlacement === 'body' ? formData.apiKeyBodyPath : undefined,
+                        headers: {'Content-Type': 'application/json'},
+                        requestTemplate,
+                        responseTemplate,
+                        requestMessageGroupPath: paths.requestMessageGroupPath,
+                        requestRolePathFromGroup: paths.requestRolePathFromGroup,
+                        requestTextPathFromGroup: paths.requestTextPathFromGroup,
+                        requestUserRoleField: paths.requestUserRoleField,
+                        requestAssistantField: paths.requestAssistantField,
+                        requestSystemField: paths.requestSystemField,
+                        responseTextPath: paths.responseTextPath,
+                        responseThinkingTextPath: paths.responseThinkingTextPath,
+                        secretKey
+                    };
+
+                    await testConfig(testRequestData);
+                } catch (error) {
+                    console.error('[handleTestConfig] API key encryption canceled:', error);
+                    return; // Stop test if canceled
+                }
+            } else if (currentConfig) {
+                // If the original config was not encrypted, just test with plaintext
+                const testRequestData: ApiConfigTestRequest = {
+                    id: currentConfig.id,
+                    name: formData.name,
+                    apiUrl: formData.apiUrl,
+                    apiKey: formData.apiKey,
+                    apiKeyPlacement: formData.apiKeyPlacement,
+                    apiKeyHeader: formData.apiKeyPlacement === 'custom_header' ? formData.apiKeyHeader : undefined,
+                    apiKeyBodyPath: formData.apiKeyPlacement === 'body' ? formData.apiKeyBodyPath : undefined,
+                    headers: {'Content-Type': 'application/json'},
+                    requestTemplate,
+                    responseTemplate,
+                    requestMessageGroupPath: paths.requestMessageGroupPath,
+                    requestRolePathFromGroup: paths.requestRolePathFromGroup,
+                    requestTextPathFromGroup: paths.requestTextPathFromGroup,
+                    requestUserRoleField: paths.requestUserRoleField,
+                    requestAssistantField: paths.requestAssistantField,
+                    requestSystemField: paths.requestSystemField,
+                    responseTextPath: paths.responseTextPath,
+                    responseThinkingTextPath: paths.responseThinkingTextPath
+                };
+
+                await testConfig(testRequestData);
+            }
+
+            // Update the existing config with all form data fields
+            // Keep the API key format consistent with the original config (encrypted or not)
+            if (currentConfig) {
+                const configUpdateData: Partial<ApiConfig> = {
+                    name: formData.name,
+                    apiUrl: formData.apiUrl,
+                    apiKey: currentConfig.apiKey.startsWith('enc:') && secretKey ?
+                        `enc:${encryptData(formData.apiKey, secretKey)}` : formData.apiKey,
+                    apiKeyPlacement: formData.apiKeyPlacement,
+                    apiKeyHeader: formData.apiKeyPlacement === 'custom_header' ? formData.apiKeyHeader : undefined,
+                    apiKeyBodyPath: formData.apiKeyPlacement === 'body' ? formData.apiKeyBodyPath : undefined,
+                    headers: {'Content-Type': 'application/json'},
+                    requestTemplate,
+                    responseTemplate,
+                    requestMessageGroupPath: paths.requestMessageGroupPath,
+                    requestRolePathFromGroup: paths.requestRolePathFromGroup,
+                    requestTextPathFromGroup: paths.requestTextPathFromGroup,
+                    requestUserRoleField: paths.requestUserRoleField,
+                    requestAssistantField: paths.requestAssistantField,
+                    requestSystemField: paths.requestSystemField,
+                    responseTextPath: paths.responseTextPath,
+                    responseThinkingTextPath: paths.responseThinkingTextPath
+                };
+
+                updateConfig(currentConfig.id, configUpdateData).then(() => {
+                    // Config is already fetched and set as current in updateConfig
+                    console.log('[handleTestConfig] Setting current config by ID after update');
+                    setCurrentConfigById(currentConfig.id);
+                });
+            }
         } catch (error) {
-            console.error('Failed to test configuration:', error);
+            console.error('[handleTestConfig] Failed to test configuration:', error);
             await dialog.alert({
                 title: t('error'),
                 message: t('invalid_json'),
@@ -489,228 +662,232 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
     };
 
     return (
-        <ConfigForm
-            onSubmit={handleSubmit}
-            key="form"
-            initial={{opacity: 0, y: 10}}
-            animate={{opacity: 1, y: 0}}
-            exit={{opacity: 0, y: -10}}
-            transition={{duration: 0.3}}
-        >
-            <h3>{currentConfig ? `${t('edit_configuration')}: ${currentConfig.name}` : t('new_configuration')}</h3>
+        <>
+            <ConfigForm
+                onSubmit={handleSubmit}
+                key="form"
+                initial={{opacity: 0, y: 10}}
+                animate={{opacity: 1, y: 0}}
+                exit={{opacity: 0, y: -10}}
+                transition={{duration: 0.3}}
+            >
+                <ConfigTitle>{currentConfig ? `${t('edit_configuration')}: ${currentConfig.name}` : t('new_configuration')}</ConfigTitle>
 
-            <FormGroup>
-                <FormLabel htmlFor="name">{t('config_name')}</FormLabel>
-                <FormInput
-                    id="name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    placeholder={t('config_name')}
-                    required
-                />
-            </FormGroup>
-
-            <FormGroup>
-                <FormLabel htmlFor="apiUrl">{t('api_url')}</FormLabel>
-                <FormInput
-                    id="apiUrl"
-                    name="apiUrl"
-                    value={formData.apiUrl}
-                    onChange={handleChange}
-                    placeholder="https://api.example.com/chat/completions"
-                    required
-                />
-            </FormGroup>
-
-            <FormGroup>
-                <FormLabel htmlFor="apiKey">{t('api_key')}</FormLabel>
-                <FormInputWithIcon>
+                <FormGroup>
+                    <FormLabel htmlFor="name">{t('config_name')}</FormLabel>
                     <FormInput
-                        id="apiKey"
-                        name="apiKey"
-                        type={showApiKey ? "text" : "password"}
-                        value={formData.apiKey}
+                        id="name"
+                        name="name"
+                        value={formData.name}
                         onChange={handleChange}
-                        placeholder="sk-..."
+                        placeholder={t('config_name')}
                         required
-                        style={{width: '100%', paddingRight: '40px'}}
                     />
-                    <EyeIconButton type="button" onClick={toggleApiKeyVisibility}>
-                        {showApiKey ? <FiEyeOff size={18}/> : <FiEye size={18}/>}
-                    </EyeIconButton>
-                </FormInputWithIcon>
-            </FormGroup>
+                </FormGroup>
 
-            <FormGroup>
-                <FormLabel>{t('api_key_placement')}</FormLabel>
-                <RadioGroup>
-                    <RadioOption>
-                        <input
-                            type="radio"
-                            id="placement-header"
-                            name="apiKeyPlacement"
-                            value="header"
-                            checked={formData.apiKeyPlacement === 'header'}
-                            onChange={() => handleApiKeyPlacementChange('header')}
-                        />
-                        <label htmlFor="placement-header">{t('default_authorization_header')}</label>
-                    </RadioOption>
-                    <RadioOption>
-                        <input
-                            type="radio"
-                            id="placement-custom-header"
-                            name="apiKeyPlacement"
-                            value="custom_header"
-                            checked={formData.apiKeyPlacement === 'custom_header'}
-                            onChange={() => handleApiKeyPlacementChange('custom_header')}
-                        />
-                        <label htmlFor="placement-custom-header">{t('custom_header')}</label>
-                    </RadioOption>
-                    <RadioOption>
-                        <input
-                            type="radio"
-                            id="placement-body"
-                            name="apiKeyPlacement"
-                            value="body"
-                            checked={formData.apiKeyPlacement === 'body'}
-                            onChange={() => handleApiKeyPlacementChange('body')}
-                        />
-                        <label htmlFor="placement-body">{t('request_body')}</label>
-                    </RadioOption>
-                </RadioGroup>
+                <FormGroup>
+                    <FormLabel htmlFor="apiUrl">{t('api_url')}</FormLabel>
+                    <FormInput
+                        id="apiUrl"
+                        name="apiUrl"
+                        value={formData.apiUrl}
+                        onChange={handleChange}
+                        placeholder="https://api.example.com/chat/completions"
+                        required
+                    />
+                </FormGroup>
 
-                {formData.apiKeyPlacement === 'custom_header' && (
-                    <FormSubGroup>
-                        <FormLabel htmlFor="apiKeyHeader">{t('header_name')}</FormLabel>
+                <FormGroup>
+                    <FormLabel htmlFor="apiKey">{t('api_key')}</FormLabel>
+                    <FormInputWithIcon>
                         <FormInput
-                            id="apiKeyHeader"
-                            name="apiKeyHeader"
-                            value={formData.apiKeyHeader}
+                            id="apiKey"
+                            name="apiKey"
+                            type={showApiKey ? "text" : "password"}
+                            value={formData.apiKey}
                             onChange={handleChange}
-                            placeholder="X-API-Key"
+                            placeholder="sk-..."
                             required
+                            style={{width: '100%', paddingRight: '40px'}}
                         />
-                        <HelperText>{t('header_name_helper')}</HelperText>
-                    </FormSubGroup>
-                )}
+                        <EyeIconButton type="button" onClick={toggleApiKeyVisibility}>
+                            {showApiKey ? <FiEyeOff size={18}/> : <FiEye size={18}/>}
+                        </EyeIconButton>
+                    </FormInputWithIcon>
+                </FormGroup>
 
-                {formData.apiKeyPlacement === 'body' && (
-                    <FormSubGroup>
-                        <FormLabel htmlFor="apiKeyBodyPath">{t('body_path')}</FormLabel>
-                        <FormInput
-                            id="apiKeyBodyPath"
-                            name="apiKeyBodyPath"
-                            value={formData.apiKeyBodyPath}
-                            onChange={handleChange}
-                            placeholder="api_key"
-                            required
-                            onBlur={handleApiKeyBodyPathChange}
-                        />
-                        <HelperText>{t('body_path_helper')}</HelperText>
-                    </FormSubGroup>
-                )}
-            </FormGroup>
+                <FormGroup>
+                    <FormLabel>{t('api_key_placement')}</FormLabel>
+                    <RadioGroup>
+                        <RadioOption>
+                            <input
+                                type="radio"
+                                id="placement-header"
+                                name="apiKeyPlacement"
+                                value="header"
+                                checked={formData.apiKeyPlacement === 'header'}
+                                onChange={() => handleApiKeyPlacementChange('header')}
+                            />
+                            <label htmlFor="placement-header">{t('default_authorization_header')}</label>
+                        </RadioOption>
+                        <RadioOption>
+                            <input
+                                type="radio"
+                                id="placement-custom-header"
+                                name="apiKeyPlacement"
+                                value="custom_header"
+                                checked={formData.apiKeyPlacement === 'custom_header'}
+                                onChange={() => handleApiKeyPlacementChange('custom_header')}
+                            />
+                            <label htmlFor="placement-custom-header">{t('custom_header')}</label>
+                        </RadioOption>
+                        <RadioOption>
+                            <input
+                                type="radio"
+                                id="placement-body"
+                                name="apiKeyPlacement"
+                                value="body"
+                                checked={formData.apiKeyPlacement === 'body'}
+                                onChange={() => handleApiKeyPlacementChange('body')}
+                            />
+                            <label htmlFor="placement-body">{t('request_body')}</label>
+                        </RadioOption>
+                    </RadioGroup>
 
-            <SectionTitle>{t('request_configuration')}</SectionTitle>
-            <FormGroup>
-                <JSONEditor
-                    value={formData.requestTemplate}
-                    onChange={(value) => handleJsonChange('requestTemplate', value)}
-                    height="500px"
-                    label={t('request_template_json')}
-                    tooltip={t('request_template_tooltip')}
-                    paths={paths}
-                    onPathsChange={handlePathsChange}
-                    isRequestTemplate={true}
-                />
-            </FormGroup>
+                    {formData.apiKeyPlacement === 'custom_header' && (
+                        <FormSubGroup>
+                            <FormLabel htmlFor="apiKeyHeader">{t('header_name')}</FormLabel>
+                            <FormInput
+                                id="apiKeyHeader"
+                                name="apiKeyHeader"
+                                value={formData.apiKeyHeader}
+                                onChange={handleChange}
+                                placeholder="X-API-Key"
+                                required
+                            />
+                            <HelperText>{t('header_name_helper')}</HelperText>
+                        </FormSubGroup>
+                    )}
 
-            <SectionTitle>{t('response_configuration')}</SectionTitle>
-            <HelperText
-                style={{marginBottom: '16px'}}>{t('response_no_message_group') || "The response does not use message groups - paths are for direct extraction from response JSON"}</HelperText>
+                    {formData.apiKeyPlacement === 'body' && (
+                        <FormSubGroup>
+                            <FormLabel htmlFor="apiKeyBodyPath">{t('body_path')}</FormLabel>
+                            <FormInput
+                                id="apiKeyBodyPath"
+                                name="apiKeyBodyPath"
+                                value={formData.apiKeyBodyPath}
+                                onChange={handleChange}
+                                placeholder="api_key"
+                                required
+                                onBlur={handleApiKeyBodyPathChange}
+                            />
+                            <HelperText>{t('body_path_helper')}</HelperText>
+                        </FormSubGroup>
+                    )}
+                </FormGroup>
 
-            <FormGroup>
-                <JSONEditor
-                    value={formData.responseTemplate}
-                    onChange={(value) => handleJsonChange('responseTemplate', value)}
-                    height="500px"
-                    label={t('response_template_json')}
-                    tooltip={t('response_template_tooltip')}
-                    paths={paths}
-                    onPathsChange={handlePathsChange}
-                    isRequestTemplate={false}
-                />
-            </FormGroup>
+                <SectionTitle>{t('request_configuration')}</SectionTitle>
+                <FormGroup>
+                    <JSONEditor
+                        value={formData.requestTemplate}
+                        onChange={(value) => handleJsonChange('requestTemplate', value)}
+                        height="500px"
+                        label={t('request_template_json')}
+                        tooltip={t('request_template_tooltip')}
+                        paths={paths}
+                        onPathsChange={handlePathsChange}
+                        isRequestTemplate={true}
+                    />
+                </FormGroup>
 
-            <FormActions>
-                <TestButton
-                    type="button"
-                    onClick={handleTestConfig}
-                    disabled={isLoading}
-                    whileHover={{
-                        scale: 1.03,
-                    }}
-                    whileTap={{scale: 0.97}}
-                >
-                    {t('test_connection')}
-                </TestButton>
-                <ActionButton
-                    type="button"
-                    onClick={handleCancelEdit}
-                    className="secondary"
-                    whileHover={{scale: 1.03, backgroundColor: 'rgba(0, 0, 0, 0.05)'}}
-                    whileTap={{scale: 0.97}}
-                >
-                    <FiX/>
-                    <span>{t('cancel')}</span>
-                </ActionButton>
-                <ActionButton
-                    type="submit"
-                    disabled={isLoading}
-                    whileHover={{
-                        scale: 1.03,
-                    }}
-                    whileTap={{scale: 0.97}}
-                >
-                    <FiCheck/>
-                    <span>{t('save')}</span>
-                </ActionButton>
-            </FormActions>
+                <SectionTitle>{t('response_configuration')}</SectionTitle>
+                <HelperText
+                    style={{marginBottom: '16px'}}>{t('response_no_message_group') || "The response does not use message groups - paths are for direct extraction from response JSON"}</HelperText>
 
-            <AnimatePresence>
-                {error && (
-                    <ErrorMessage
-                        initial={{opacity: 0, height: 0}}
-                        animate={{opacity: 1, height: 'auto'}}
-                        exit={{opacity: 0, height: 0}}
-                        transition={{duration: 0.2}}
+                <FormGroup>
+                    <JSONEditor
+                        value={formData.responseTemplate}
+                        onChange={(value) => handleJsonChange('responseTemplate', value)}
+                        height="500px"
+                        label={t('response_template_json')}
+                        tooltip={t('response_template_tooltip')}
+                        paths={paths}
+                        onPathsChange={handlePathsChange}
+                        isRequestTemplate={false}
+                    />
+                </FormGroup>
+
+                <FormActions>
+                    <TestButton
+                        id="test-button"
+                        type="button"
+                        onClick={handleTestConfig}
+                        disabled={isLoading}
+                        whileHover={{
+                            scale: 1.03,
+                        }}
+                        whileTap={{scale: 0.97}}
                     >
-                        <FiAlertTriangle size={18}/>
-                        <span>{error}</span>
-                    </ErrorMessage>
-                )}
-            </AnimatePresence>
+                        {t('test_connection')}
+                    </TestButton>
+                    <ActionButton
+                        type="button"
+                        onClick={handleCancelEdit}
+                        className="secondary"
+                        whileHover={{scale: 1.03, backgroundColor: 'rgba(0, 0, 0, 0.05)'}}
+                        whileTap={{scale: 0.97}}
+                    >
+                        <FiX/>
+                        <span>{t('cancel')}</span>
+                    </ActionButton>
+                    <ActionButton
+                        type="submit"
+                        disabled={isLoading}
+                        whileHover={{
+                            scale: 1.03,
+                        }}
+                        whileTap={{scale: 0.97}}
+                    >
+                        <FiCheck/>
+                        <span>{t('save')}</span>
+                    </ActionButton>
+                </FormActions>
 
-            <AnimatePresence>
-                {testResult && (
-                    <TestResponse testResult={testResult}/>
-                )}
-            </AnimatePresence>
-        </ConfigForm>
+                <AnimatePresence>
+                    {error && (
+                        <ErrorMessage
+                            initial={{opacity: 0, height: 0}}
+                            animate={{opacity: 1, height: 'auto'}}
+                            exit={{opacity: 0, height: 0}}
+                            transition={{duration: 0.2}}
+                        >
+                            <FiAlertTriangle size={18}/>
+                            <span>{error}</span>
+                        </ErrorMessage>
+                    )}
+                </AnimatePresence>
+
+                <AnimatePresence>
+                    {testResult && (
+                        <TestResponse testResult={testResult}/>
+                    )}
+                </AnimatePresence>
+            </ConfigForm>
+            {secretKeyDialogComponent}
+        </>
     );
 };
 
 const ConfigForm = styled(motion.form)`
     padding: 20px;
-
-    h3 {
-        margin-top: 0;
-        margin-bottom: 20px;
-        font-size: 1.3rem;
-        color: ${({theme}) => theme.colors.primary};
-    }
 `;
+
+const ConfigTitle = styled.h3`
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 1.3rem;
+    color: ${({theme}) => theme.colors.primary};
+`
 
 const FormGroup = styled.div`
     margin-bottom: 16px;
@@ -840,6 +1017,10 @@ const TestButton = styled(motion.button)`
         opacity: 0.5;
         cursor: not-allowed;
     }
+
+    &:hover {
+        color: ${({theme}) => theme.colors.text};
+    }
 `;
 
 const SectionTitle = styled.h4`
@@ -849,4 +1030,4 @@ const SectionTitle = styled.h4`
     color: ${({theme}) => theme.colors.primary};
 `;
 
-export default ConfigEditForm; 
+export default ConfigEditForm;

@@ -96,6 +96,7 @@ const enTranslation = {
     new_config: 'New Config',
     your_configs: 'Your Configurations',
     no_configs: 'No configurations yet.\nCreate one to get started.',
+    nothing_here: 'Nothing here yet',
     select_config: 'Select a configuration from the list\nor create a new one.',
     edit: 'Edit',
     delete: 'Delete',
@@ -110,6 +111,7 @@ const enTranslation = {
     header_name_helper: 'Enter the custom header name for the API key',
     body_path_helper: 'Enter the field name in the request body where the API key should be placed',
     api_key_body_note: 'Your API key will be added to the request body as:',
+    original_json_reference: 'Original JSON Reference',
     request_template: 'Request Template',
     response_template: 'Response Template',
     new_configuration: 'New Configuration',
@@ -131,6 +133,7 @@ const enTranslation = {
     available: 'Available',
     unavailable: 'Unavailable',
     delete_confirmation: 'Confirm Deletion',
+    loading_editor: 'Loading Editor...',
 
     // Secret Key Dialog
     set_secret_key: 'Set Encryption Secret Key',

@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import styled from 'styled-components';
 import {motion} from 'framer-motion';
-import {FiEye, FiEyeOff, FiInfo, FiLock} from 'react-icons/fi';
+import {FiEye, FiEyeOff, FiLock} from 'react-icons/fi';
 import {useTranslation} from 'react-i18next';
 import {colorTransition} from '@/styles/animations.ts';
 
@@ -63,7 +63,6 @@ const SecretKeyDialog: React.FC<SecretKeyDialogProps> = ({
                 </DialogHeader>
                 <DialogContent>
                     <InfoBox>
-                        <FiInfo size={16}/>
                         <InfoText>
                             {configName
                                 ? t('secret_key_info_with_name', {name: configName})
@@ -71,7 +70,7 @@ const SecretKeyDialog: React.FC<SecretKeyDialogProps> = ({
                         </InfoText>
                     </InfoBox>
 
-                    <Form onSubmit={handleSubmit}>
+                    <Form key="dialog-form" onSubmit={handleSubmit}>
                         <FormGroup>
                             <Label htmlFor="secretKey">{t('secret_key')}</Label>
                             <InputWrapper>
@@ -132,7 +131,7 @@ const DialogOverlay = styled(motion.div)`
 `;
 
 const DialogContainer = styled(motion.div)`
-    background-color: ${({theme}) => theme.colors.card};
+    background-color: ${({theme}) => theme.colors.dialogBackground};
     border-radius: ${({theme}) => theme.borderRadius};
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
     width: 400px;
@@ -186,7 +185,7 @@ const InputWrapper = styled.div`
 const Input = styled.input`
     width: 100%;
     padding: 10px 12px;
-    border: 1px solid ${({theme}) => theme.colors.border};
+    border: 1px solid ${({theme}) => theme.colors.borderInDialog};
     border-radius: ${({theme}) => theme.borderRadius};
     font-size: 0.95rem;
     transition: ${colorTransition};
@@ -201,7 +200,7 @@ const Input = styled.input`
 const EyeButton = styled.button`
     position: absolute;
     right: 10px;
-    background-color: transparent;
+    background-color: transparent !important;
     border: none;
     cursor: pointer;
     color: ${({theme}) => theme.colors.text};
@@ -261,11 +260,11 @@ const Button = styled.button`
 
 const CancelButton = styled(Button)`
     background-color: transparent;
-    border: 1px solid ${({theme}) => theme.colors.border};
+    border: 1px solid ${({theme}) => theme.colors.borderInDialog};
     color: ${({theme}) => theme.colors.text};
 
     &:hover {
-        background-color: ${({theme}) => theme.colors.background};
+        background-color: rgba(0, 0, 0, 0.05);
     }
 `;
 
@@ -275,7 +274,7 @@ const ConfirmButton = styled(Button)`
     color: ${({theme}) => theme.colors.buttonText};
 
     &:hover {
-        background-color: ${({theme}) => theme.colors.primary}dd;
+        background-color: ${({theme}) => theme.colors.primary};
     }
 `;
 

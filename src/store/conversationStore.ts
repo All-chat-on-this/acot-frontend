@@ -5,6 +5,7 @@ import {AxiosError} from 'axios';
 import {CommonResult} from '@/types';
 import {getFormattedCurrentTime} from "@/utils/timeUtils.ts";
 import useConfigStore from "@/store/configStore.ts";
+import {encryptData} from "@/utils/encryptionUtils.ts";
 
 interface ConversationState {
     conversations: Conversation[];
@@ -21,7 +22,7 @@ interface ConversationStore extends ConversationState {
     updateConversation: (id: number, data: Partial<Conversation>) => Promise<Conversation>;
     deleteConversation: (id: number) => Promise<void>;
     sendMessage: (content: string, configId: number, secretKey: string) => Promise<Message>;
-    renameMessage: (id: number, content: string) => Promise<Message>;
+    renameMessage: (id: number, content: string, secretKey: string) => Promise<Message>;
     deleteMessage: (id: number) => Promise<void>;
     setConversations: (conversations: Conversation[]) => void;
 }
@@ -158,6 +159,16 @@ const useConversationStore = create<ConversationStore>((set, get) => ({
                 throw new Error('No active conversation');
             }
 
+            // Get the config to check if API key needs to be encrypted
+            const configStore = useConfigStore.getState();
+            const config = configStore.configs.find(c => c.id === configId);
+
+            if (!config) {
+                throw new Error('Configuration not found');
+            }
+
+            const configName = config.name || '';
+
             // Create temporary user message for immediate display
             const tempUserMessage: Message = {
                 id: Date.now(), // Temporary ID
@@ -168,11 +179,6 @@ const useConversationStore = create<ConversationStore>((set, get) => ({
                 thinkingText: null,
                 createTime: getFormattedCurrentTime()
             };
-
-            // Get config name for display purposes
-            const configStore = useConfigStore.getState();
-            const config = configStore.configs.find(c => c.id === configId);
-            const configName = config?.name || '';
 
             // Create temporary assistant message with loading state
             const tempAssistantMessage: Message = {
@@ -190,6 +196,19 @@ const useConversationStore = create<ConversationStore>((set, get) => ({
             set(state => ({
                 messages: [...state.messages, tempUserMessage, tempAssistantMessage]
             }));
+
+            // If API key is not already encrypted, encrypt it
+            let apiKey = config.apiKey;
+            if (!apiKey.startsWith('enc:') && secretKey) {
+                const encryptedApiKey = encryptData(apiKey, secretKey);
+                apiKey = `enc:${encryptedApiKey}`;
+
+                // Update the config in the store with the encrypted API key
+                await configStore.updateConfig(configId, {
+                    ...config,
+                    apiKey
+                });
+            }
 
             const sendMessageRequest: SendMessageRequest = {
                 conversationId: currentConversation.id,
@@ -258,7 +277,7 @@ const useConversationStore = create<ConversationStore>((set, get) => ({
         }
     },
 
-    renameMessage: async (id: number, content: string) => {
+    renameMessage: async (id: number, content: string, secretKey: string) => {
         set({isLoading: true, error: null});
         try {
             // Get the current message
@@ -267,6 +286,30 @@ const useConversationStore = create<ConversationStore>((set, get) => ({
 
             if (!message) {
                 throw new Error('Message not found');
+            }
+
+            // Get the config to check if API key needs to be encrypted
+            const configStore = useConfigStore.getState();
+            const configId = message.configId || 0; // Provide a fallback value
+            const config = configStore.configs.find(c => c.id === configId);
+
+            if (!config) {
+                throw new Error('Configuration not found');
+            }
+
+            const configName = config.name || '';
+
+            // If API key is not already encrypted, encrypt it
+            let apiKey = config.apiKey;
+            if (!apiKey.startsWith('enc:') && secretKey) {
+                const encryptedApiKey = encryptData(apiKey, secretKey);
+                apiKey = `enc:${encryptedApiKey}`;
+
+                // Update the config in the store with the encrypted API key
+                await configStore.updateConfig(config.id, {
+                    ...config,
+                    apiKey
+                });
             }
 
             // Find this message's index to determine which messages should be truncated
@@ -283,11 +326,6 @@ const useConversationStore = create<ConversationStore>((set, get) => ({
             // If it's a user message, we need to add a temporary loading response
             // since the server will generate a new assistant response
             if (message.role === 'user') {
-                // Get the config name for display purposes
-                const configStore = useConfigStore.getState();
-                const config = configStore.configs.find(c => c.id === message.configId);
-                const configName = config?.name || '';
-
                 // Create temporary assistant message with loading state
                 const tempAssistantMessage: Message = {
                     id: Date.now(), // Temporary ID
@@ -309,7 +347,7 @@ const useConversationStore = create<ConversationStore>((set, get) => ({
 
             // Use the renameMessage API endpoint that handles everything on the server
             // The backend will also truncate messages after the renamed one
-            const result = await apiService.messages.renameMessage(id, content);
+            const result = await apiService.messages.renameMessage(id, content, secretKey);
 
             if (message.role === 'user') {
                 // Handle the case when a user message was renamed

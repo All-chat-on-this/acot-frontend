@@ -39,7 +39,7 @@ export interface ConfigService {
 
     getConfig(id: number): Promise<ApiConfig>;
 
-    createConfig(configData: Omit<ApiConfig, 'id' | 'userId' | 'isAvailable'>): Promise<ApiConfig>;
+    createConfig(configData: Omit<ApiConfig, 'id' | 'userId' | 'isAvailable'>): Promise<CommonResult<ApiConfig>>;
 
     updateConfig(id: number, configData: Partial<ApiConfig>): Promise<ApiConfig>;
 
@@ -59,7 +59,7 @@ export const configService: ConfigService = {
         return response.data.data;
     },
 
-    createConfig: async (configData: Omit<ApiConfig, 'id' | 'userId' | 'isAvailable'>): Promise<ApiConfig> => {
+    createConfig: async (configData: Omit<ApiConfig, 'id' | 'userId' | 'isAvailable'>): Promise<CommonResult<ApiConfig>> => {
         const response = await apiClient.post('/config/createConfig', configData);
         return response.data;
     },

@@ -1,6 +1,4 @@
 import {useState} from 'react';
-import {useDialog} from '@/components/Dialog';
-import {useTranslation} from 'react-i18next';
 import {getConfigSecretKey, saveConfigSecretKey} from '@/utils/encryptionUtils';
 import SecretKeyDialog from '@/components/Config/SecretKeyDialog.tsx';
 
@@ -8,8 +6,6 @@ import SecretKeyDialog from '@/components/Config/SecretKeyDialog.tsx';
  * Hook for handling API key encryption
  */
 const useEncryption = () => {
-    const {t} = useTranslation();
-    const dialog = useDialog();
     const [isSecretKeyDialogOpen, setIsSecretKeyDialogOpen] = useState(false);
     const [pendingOperationCallback, setPendingOperationCallback] = useState<((secretKey: string) => void) | null>(null);
     const [configForDialog, setConfigForDialog] = useState<{ name?: string, id?: number | null }>({});
@@ -51,11 +47,6 @@ const useEncryption = () => {
     const handleSecretKeyCancel = () => {
         setIsSecretKeyDialogOpen(false);
         setPendingOperationCallback(null);
-        dialog.alert({
-            title: t('error'),
-            message: t('operation_canceled'),
-            type: 'error'
-        });
     };
 
     // SecretKeyDialog component to render

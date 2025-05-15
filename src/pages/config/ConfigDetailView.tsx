@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import styled from 'styled-components';
 import {motion} from 'framer-motion';
 import {FiEdit, FiEye, FiEyeOff, FiTrash2} from 'react-icons/fi';
@@ -9,6 +9,8 @@ import {ActionButton} from '../ConfigPage';
 import {useTranslation} from "react-i18next";
 import {ApiConfig} from "@/api/type/configApi.ts";
 import {useDialog} from '@/components/Dialog';
+import {decryptData, getConfigSecretKey} from '@/utils/encryptionUtils';
+import useEncryption from '@/hooks/useEncryption';
 
 interface ConfigDetailViewProps {
     currentConfig: ApiConfig;
@@ -26,6 +28,53 @@ const ConfigDetailView: React.FC<ConfigDetailViewProps> = ({
     const {deleteConfig} = useConfigStore();
     const {t} = useTranslation();
     const dialog = useDialog();
+    const {getOrCreateSecretKey, secretKeyDialogComponent} = useEncryption();
+    const [decryptedApiKey, setDecryptedApiKey] = useState<string>('');
+    const [displayApiKey, setDisplayApiKey] = useState<string>('');
+
+    // Decrypt API key when visibility changes or config changes
+    useEffect(() => {
+        async function decryptApiKey() {
+            if (currentConfig.apiKey.startsWith('enc:')) {
+                try {
+                    // Get the stored secret key for this config
+                    let secretKey = getConfigSecretKey(currentConfig.id);
+
+                    // If no secret key found in storage, prompt the user
+                    if (!secretKey) {
+                        try {
+                            secretKey = await getOrCreateSecretKey(currentConfig.id, currentConfig.name);
+                        } catch (error) {
+                            console.error('Secret key retrieval canceled:', error);
+                            return;
+                        }
+                    }
+
+                    // Remove the 'enc:' prefix and decrypt
+                    const encryptedKey = currentConfig.apiKey.substring(4);
+                    const decrypted = decryptData(encryptedKey, secretKey);
+                    setDecryptedApiKey(decrypted);
+                } catch (error) {
+                    console.error('Failed to decrypt API key:', error);
+                    await dialog.alert({
+                        title: t('error'),
+                        message: t('decryption_failed', 'Failed to decrypt API key'),
+                        type: 'error'
+                    });
+                }
+            } else {
+                // For non-encrypted keys, just show as is
+                setDecryptedApiKey(currentConfig.apiKey);
+            }
+
+            // Determine what to display for the API key
+            setDisplayApiKey(showApiKey ?
+                (currentConfig.apiKey.startsWith('enc:') ? decryptedApiKey : currentConfig.apiKey) :
+                '•'.repeat(decryptedApiKey.length));
+        }
+
+        decryptApiKey();
+    }, [showApiKey, decryptedApiKey, currentConfig.apiKey, currentConfig.id, currentConfig.name, dialog, t, getOrCreateSecretKey]);
 
     // Add fallback translations for new keys
     const available = t('available', 'Available');
@@ -104,7 +153,7 @@ const ConfigDetailView: React.FC<ConfigDetailViewProps> = ({
             <ConfigDetail>
                 <ConfigDetailLabel>{t('api_key')}</ConfigDetailLabel>
                 <ConfigDetailValueWithIcon>
-                    <ConfigDetailValue>{showApiKey ? currentConfig.apiKey : '••••••••••••••••••••••'}</ConfigDetailValue>
+                    <ConfigDetailValue>{displayApiKey || t('nothing_here')}</ConfigDetailValue>
                     <EyeIconButton onClick={toggleApiKeyVisibility}>
                         {showApiKey ? <FiEyeOff size={18}/> : <FiEye size={18}/>}
                     </EyeIconButton>
@@ -196,6 +245,7 @@ const ConfigDetailView: React.FC<ConfigDetailViewProps> = ({
                     paths={paths}
                 />
             </ConfigDetail>
+            {secretKeyDialogComponent}
         </ConfigDetailContent>
     );
 };

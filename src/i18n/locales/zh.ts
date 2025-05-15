@@ -96,6 +96,7 @@ const zhTranslation = {
     new_config: '新建配置',
     your_configs: '您的配置',
     no_configs: '还没有配置。\n创建一个配置开始使用。',
+    nothing_here: '这里什么都没有。',
     select_config: '从列表中选择一个配置\n或创建一个新配置。',
     edit: '编辑',
     delete: '删除',
@@ -110,6 +111,7 @@ const zhTranslation = {
     header_name_helper: '输入API密钥的自定义标头名称',
     body_path_helper: '输入请求正文中放置API密钥的字段名称',
     api_key_body_note: '您的API密钥将被添加到请求正文中，如下所示：',
+    original_json_reference: '原始JSON参考',
     request_template: '请求模板',
     response_template: '响应模板',
     new_configuration: '新建配置',
@@ -131,6 +133,7 @@ const zhTranslation = {
     available: '可用',
     unavailable: '不可用',
     delete_confirmation: '确认删除',
+    loading_editor: '正在加载编辑器...',
 
     // Secret Key Dialog
     set_secret_key: '设置加密密钥',

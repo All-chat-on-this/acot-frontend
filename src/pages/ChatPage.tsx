@@ -29,7 +29,7 @@ const ChatPage: React.FC = () => {
 
     const {currentConfig} = useConfigStore();
     const {preference} = usePreferenceStore();
-    const {getOrCreateSecretKey} = useEncryption();
+    const {getOrCreateSecretKey, secretKeyDialogComponent} = useEncryption();
 
     useEffect(() => {
         if (id) {
@@ -71,15 +71,22 @@ const ChatPage: React.FC = () => {
     };
 
     const handleRenameMessage = async (id: number, content: string) => {
+        if (!currentConfig) {
+            setLocalError(t('configure_api_first'));
+            return;
+        }
+
         if (!currentConversation) {
             setLocalError(t('no_conversation_selected'));
             return;
         }
 
         try {
+            // Get the secret key if the API key is encrypted
+            const secretKey = await getOrCreateSecretKey(currentConfig.id, currentConfig.name);
             // The UI will show a temporary message immediately
             // The actual update is handled by the store
-            await renameMessage(id, content);
+            await renameMessage(id, content, secretKey);
             setLocalError(null); // Clear any previous errors on success
         } catch (err) {
             console.error('Failed to rename message:', err);
@@ -186,6 +193,7 @@ const ChatPage: React.FC = () => {
 
                 <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading}/>
             </ChatContainer>
+            {secretKeyDialogComponent}
         </Layout>
     );
 };

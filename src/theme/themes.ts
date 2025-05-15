@@ -19,6 +19,7 @@ const themes: ThemeDefinition = {
             assistantBubbleText: '#333333',
             systemBubbleText: '#333333',
             hover: '#E6F7FF',
+            borderInDialog: '#E8E8E8',
             dialogBackground: '#FFFFFF',
             success: '#2e7d32',
             error: '#d33'
@@ -45,6 +46,7 @@ const themes: ThemeDefinition = {
             assistantBubbleText: '#E0E0E0',
             systemBubbleText: '#E0E0E0',
             hover: '#003A8C',
+            borderInDialog: '#444444',
             dialogBackground: '#2D2D2D',
             success: '#4caf50',
             error: '#f44336'
@@ -71,6 +73,7 @@ const themes: ThemeDefinition = {
             assistantBubbleText: '#333333',
             systemBubbleText: '#333333',
             hover: 'rgb(44,154,255)',
+            borderInDialog: '#E8E8E8',
             dialogBackground: 'rgba(255, 255, 255, 1)',
             success: '#2e7d32',
             error: '#d33'
@@ -98,6 +101,7 @@ const themes: ThemeDefinition = {
             assistantBubbleText: '#E0E0E0',
             systemBubbleText: '#E0E0E0',
             hover: 'rgba(0, 58, 140, 0.7)',
+            borderInDialog: '#444444',
             dialogBackground: 'rgba(30, 30, 50, 1)',
             success: '#4caf50',
             error: '#f44336'

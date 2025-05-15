@@ -68,13 +68,14 @@ const useConfigStore = create<ConfigStore>((set, get) => ({
         set({isLoading: true, error: null});
         try {
             const newConfig = await apiService.configs.createConfig(configData);
+            const newConfigData = newConfig.data;
             // Set the new config as current
-            set({currentConfig: newConfig});
+            set({currentConfig: newConfigData});
 
             // Fetch updated configs list to ensure UI is in sync
             await get().fetchConfigs();
 
-            return newConfig;
+            return newConfigData;
         } catch (error) {
             set({
                 isLoading: false,
