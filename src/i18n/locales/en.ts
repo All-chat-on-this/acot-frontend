@@ -3,6 +3,7 @@ const enTranslation = {
     app_name: 'ACOT',
     app_full_name: 'All Chat On This',
     app_description: 'Your customizable AI chat platform',
+    documentation: 'Documentation',
 
     // Auth
     login: 'Login',

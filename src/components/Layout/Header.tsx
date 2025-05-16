@@ -5,7 +5,7 @@ import {useTranslation} from 'react-i18next';
 import {AnimatePresence, motion} from 'framer-motion';
 import useAuthStore from '@/store/authStore';
 import useTheme from '@/hooks/useTheme';
-import {FiCheck, FiChevronDown, FiLogOut, FiMenu, FiMoon, FiServer, FiSun, FiUser} from 'react-icons/fi';
+import {FiBookOpen, FiCheck, FiChevronDown, FiLogOut, FiMenu, FiMoon, FiServer, FiSun, FiUser} from 'react-icons/fi';
 import LanguageSwitch from '../LanguageSwitch';
 import {colorTransition} from '@/styles/animations';
 import useConfigStore from '@/store/configStore';
@@ -14,6 +14,8 @@ import usePreferenceStore from '@/store/preferenceStore';
 interface HeaderProps {
     onToggleSidebar?: () => void;
 }
+
+const DOCS_URL = import.meta.env.VITE_DOCS_URL;
 
 const Header: React.FC<HeaderProps> = ({onToggleSidebar}) => {
     const {t} = useTranslation();
@@ -88,6 +90,21 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar}) => {
                     >
                         {t('app_name')}
                     </Logo>
+                    <DocsLink
+                        href={DOCS_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        whileHover={{
+                            scale: 1.05,
+                            color: isLightTheme
+                                ? 'rgba(24, 144, 255, 0.8)'
+                                : 'rgba(24, 144, 255, 1)'
+                        }}
+                        whileTap={{scale: 0.95}}
+                    >
+                        <FiBookOpen size={16}/>
+                        <span>{t('documentation')}</span>
+                    </DocsLink>
                 </LogoContainer>
 
                 <HeaderControls>
@@ -285,6 +302,29 @@ const MenuButton = styled(motion.button)`
 
     &:hover {
         background-color: rgba(255, 255, 255, 0.1);
+    }
+`;
+
+const DocsLink = styled(motion.a)`
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: 20px;
+    color: ${({theme}) => theme.colors.text};
+    text-decoration: none;
+    font-size: 0.9rem;
+    padding: 5px 10px;
+    border-radius: ${({theme}) => theme.borderRadius};
+    transition: ${colorTransition};
+
+    &:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    @media (max-width: 576px) {
+        span {
+            display: none;
+        }
     }
 `;
 

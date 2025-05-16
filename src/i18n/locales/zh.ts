@@ -3,6 +3,7 @@ const zhTranslation = {
     app_name: 'ACOT',
     app_full_name: 'All Chat On This',
     app_description: '您的可定制AI聊天平台',
+    documentation: '文档',
 
     // Auth
     login: '登录',
