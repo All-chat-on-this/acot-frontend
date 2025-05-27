@@ -68,49 +68,6 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
         }
     }, [testResult]);
 
-    useEffect(() => {
-        if (currentConfig) {
-            // If API key is encrypted, decrypt it when first loading the form or when config changes
-            const decryptApiKeyIfNeeded = async () => {
-                if (currentConfig.apiKey.startsWith('enc:')) {
-                    try {
-                        // Get the stored secret key for this config
-                        let secretKey = getConfigSecretKey(currentConfig.id);
-
-                        // If no secret key found in storage, prompt the user
-                        if (!secretKey) {
-                            try {
-                                secretKey = await getOrCreateSecretKey(currentConfig.id, currentConfig.name);
-                            } catch (error) {
-                                console.error('Secret key retrieval canceled:', error);
-                                return;
-                            }
-                        }
-
-                        // Remove the 'enc:' prefix and decrypt
-                        const encryptedKey = currentConfig.apiKey.substring(4);
-                        const decrypted = decryptData(encryptedKey, secretKey);
-
-                        // Update form data with decrypted key
-                        setFormData(prev => ({
-                            ...prev,
-                            apiKey: decrypted
-                        }));
-                    } catch (error) {
-                        console.error('Failed to decrypt API key:', error);
-                        await dialog.alert({
-                            title: t('error'),
-                            message: t('decryption_failed', 'Failed to decrypt API key'),
-                            type: 'error'
-                        });
-                    }
-                }
-            };
-
-            decryptApiKeyIfNeeded();
-        }
-    }, [currentConfig, showApiKey, dialog, t, getOrCreateSecretKey]);
-
     const [formData, setFormData] = useState({
         name: t('new_configuration'),
         apiUrl: 'https://api.siliconflow.cn/v1/chat/completions',
@@ -268,6 +225,49 @@ const ConfigEditForm: React.FC<ConfigEditFormProps> = ({
             });
         }
     }, [currentConfig, t]);
+
+    useEffect(() => {
+        if (currentConfig) {
+            // If API key is encrypted, decrypt it when first loading the form or when config changes
+            const decryptApiKeyIfNeeded = async () => {
+                if (currentConfig.apiKey.startsWith('enc:')) {
+                    try {
+                        // Get the stored secret key for this config
+                        let secretKey = getConfigSecretKey(currentConfig.id);
+
+                        // If no secret key found in storage, prompt the user
+                        if (!secretKey) {
+                            try {
+                                secretKey = await getOrCreateSecretKey(currentConfig.id, currentConfig.name);
+                            } catch (error) {
+                                console.error('Secret key retrieval canceled:', error);
+                                return;
+                            }
+                        }
+
+                        // Remove the 'enc:' prefix and decrypt
+                        const encryptedKey = currentConfig.apiKey.substring(4);
+                        const decrypted = decryptData(encryptedKey, secretKey);
+
+                        // Update form data with decrypted key
+                        setFormData(prev => ({
+                            ...prev,
+                            apiKey: decrypted
+                        }));
+                    } catch (error) {
+                        console.error('Failed to decrypt API key:', error);
+                        await dialog.alert({
+                            title: t('error'),
+                            message: t('decryption_failed', 'Failed to decrypt API key'),
+                            type: 'error'
+                        });
+                    }
+                }
+            };
+
+            decryptApiKeyIfNeeded();
+        }
+    }, [showApiKey, t]);
 
     useEffect(() => {
         handleApiKeyBodyPathChange();
